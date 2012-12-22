@@ -35,7 +35,7 @@ class State {
   inline Year getYear() { return year; }
 
   const WithholdingTable* getWithholder(const FilingStatus& status) const {
-    assert(filingStatuses.count(status) > 0);
+    //assert(filingStatuses.count(status) > 0);
     assert(withholdingTables.count(status) > 0);
 
     std::map<FilingStatus, const WithholdingTable* >::const_iterator it = withholdingTables.find(status);
@@ -65,7 +65,7 @@ class State {
   }
 
   const QuantLib::Money& getLowIncomeExemption(const FilingStatus& status, PayrollFrequency freq) const {
-    assert(filingStatuses.count(status) > 0);
+    //assert(filingStatuses.count(status) > 0);
     assert(lowIncomeExemptionTable.count(status) > 0);
     std::map<FilingStatus, std::map<PayrollFrequency, QuantLib::Money > >::const_iterator itToFreqExMap;
     itToFreqExMap = lowIncomeExemptionTable.find(status);
@@ -80,7 +80,7 @@ class State {
   }
 
   const QuantLib::Money& getStandardDeduction(const FilingStatus& status, PayrollFrequency freq) const {
-    assert(filingStatuses.count(status) > 0);
+    //assert(filingStatuses.count(status) > 0);
     assert(standardDeductionTable.count(status) > 0);
     std::map<FilingStatus, std::map<PayrollFrequency, QuantLib::Money > >::const_iterator itToFreqExMap;
     itToFreqExMap = standardDeductionTable.find(status);
