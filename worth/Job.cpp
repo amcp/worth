@@ -67,7 +67,8 @@ JobPayment* Job::getNextPayment() {
   Money payrollAdjSocialIncome = getAdjustedAnnualSocialIncome(
       extraPayInPeriod);
   Money payrollAdjIncome = getAdjustedAnnualIncome(extraPayInPeriod);
-  Worth::TaxDictionary* dict = Worth::TaxDictionary::getInstance();
+  //TODO
+  Worth::TaxDictionary* dict = NULL;//Worth::TaxDictionary::getInstance();
   unsigned int year = getCurrentPaymentDate().year();
 
   hash_map<string, Money, hash<string> > stateIncomeTaxes;

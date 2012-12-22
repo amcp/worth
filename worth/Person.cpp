@@ -108,7 +108,8 @@ hash_map<string, Money, hash<string> > Person::generateTaxReturn(
        << year << ": " << taxesPaidToStateJurisdictions << endl;
   cout << "Yearly income wages were: " << yearlyIncomeWages << endl;
 
-  Worth::TaxDictionary* dict = Worth::TaxDictionary::getInstance();
+  //TODO
+  Worth::TaxDictionary* dict = NULL;//Worth::TaxDictionary::getInstance();
   Money federalExemptions = dict->getExemptionAmount(year, "US");
   Money federalTaxableIncome = yearlyIncomeWages - taxesPaidToStateJurisdictions
       - deductionsInAllJurisdictions - federalExemptions;

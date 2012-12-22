@@ -31,7 +31,6 @@ typedef hash_map<string, hash_map<string, TieredTaxer*, hash<string > >, hash<st
 
 class TaxDictionary {
 private:
-	static TaxDictionary* theInstance;
 	TaxDictionary() {}
 	hash_map<unsigned int, ExemptionMap> exemptionAmtPerJuris;
 	hash_map<unsigned int, IncomeTaxerMap> incomeTaxers;
@@ -72,13 +71,13 @@ private:
 					if(incomeTaxers[year].count(jurisdiction) == 0) {
 						incomeTaxers[year][jurisdiction] = new TieredTaxer(currency);
 					}
-					incomeTaxers[year][jurisdiction]->addTier(boost::lexical_cast<double>(tokens[3]), boost::lexical_cast<double>(tokens[4]));
+					incomeTaxers[year][jurisdiction]->addTier(boost::lexical_cast<double>(tokens[3]) * currency, boost::lexical_cast<double>(tokens[4]));
 				} else if(type.compare("SOCIAL") == 0) {
 					string socialType = tokens[3];
 					if(socialTaxers[year][jurisdiction].count(socialType) == 0) {
 						socialTaxers[year][jurisdiction][socialType] = new TieredTaxer(currency);
 					}
-					socialTaxers[year][jurisdiction][socialType]->addTier(boost::lexical_cast<double>(tokens[4]), boost::lexical_cast<double>(tokens[5]));
+					socialTaxers[year][jurisdiction][socialType]->addTier(boost::lexical_cast<double>(tokens[4]) * currency, boost::lexical_cast<double>(tokens[5]));
 				} else if(type.compare("EXEMPT") == 0) {
 					exemptionAmtPerJuris[year][jurisdiction] = boost::lexical_cast<double>(tokens[3]) * currency;
 				} else {
@@ -90,12 +89,6 @@ private:
 	}
 
 public:
-	static TaxDictionary* getInstance() {
-		if(theInstance == NULL) {
-			theInstance = new TaxDictionary("/Users/amcp/Documents/workspace/worth/Debug/singleTaxTables.txt", USDCurrency());
-		}
-		return theInstance;
-	}
 
 	~TaxDictionary() {
 		//TODO delete all the tax tier objects

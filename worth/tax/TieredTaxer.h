@@ -37,18 +37,36 @@ public:
 		rates.push_back(rate);
 	}
 
-	inline void addTier(double threshold, double rate) {
-		tiers.push_back(threshold * currency);
-		rates.push_back(rate);
-	}
+	Money computeTax(const Money& income) const {
+    Money total(income.currency(), 0);
 
-	Money computeTax(const Money& income) const;
+    if(income.currency() != this->currency) {
+      cerr << "Income " << income << " was not denominated in " << this->currency << endl;
+      return total;
+    }
+
+    Money workingRemainder = income;
+
+    for (int i = tiers.size() - 1; i >= 0; i--) {
+      if(workingRemainder < tiers[i]) {
+        //go to the next one if the current tier is greater than the working remainder
+        continue;
+      }
+
+      const Money tier = tiers.at(i);
+      Money delta = workingRemainder - tier;
+      Rate rate = rates[i];
+      total = total + delta * rate;
+      workingRemainder = tiers[i];
+    }
+
+    return total;
+  }
 
 	inline double computeMarginalRate(const Money& income) {
 	  double rate = 0.0;
-	  for (unsigned int i = tiers.size() - 1; i >= 0; i--) {
+	  for (unsigned int i = 0; i < tiers.size(); i++) {
 	    if(income < tiers[i]) {
-        //go to the next one if the current tier is greater than the working remainder
         break;
       }
 	    rate = rates[i];
