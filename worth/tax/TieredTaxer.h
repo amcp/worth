@@ -46,13 +46,13 @@ public:
 
 	inline double computeMarginalRate(const Money& income) {
 	  double rate = 0.0;
-	  for (int i = tiers.size() - 1; i >= 0; i--) {
-	      if(income < tiers[i]) {
-	        //go to the next one if the current tier is greater than the working remainder
-	        continue;
-	      }
-	      rate = rates[i];
-	    }
+	  for (unsigned int i = tiers.size() - 1; i >= 0; i--) {
+	    if(income < tiers[i]) {
+        //go to the next one if the current tier is greater than the working remainder
+        break;
+      }
+	    rate = rates[i];
+	  }
 
 	  return rate;
 	}

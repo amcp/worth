@@ -1,3 +1,6 @@
+#ifndef PAYROLLFREQUENCY_H_
+#define PAYROLLFREQUENCY_H_
+
 namespace Worth {
   enum PayrollFrequency {
     Daily,
@@ -10,3 +13,5 @@ namespace Worth {
     Annual
   };
 }
+
+#endif

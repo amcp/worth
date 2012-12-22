@@ -9,16 +9,16 @@
 #define WITHOLDER_H_
 
 #include <cassert>
-#include "payroll/PayrollPeriods.h"
+#include "PayrollPeriods.h"
 
 namespace Worth {
-class Withholder {
+class WithholdingTable {
  private:
   std::map<PayrollFrequency, TieredTaxer*> table;
  public:
-  Withholder() {}
+  WithholdingTable() {}
 
-  ~Withholder() {
+  ~WithholdingTable() {
     table.clear();
   }
 

@@ -24,7 +24,7 @@ class State {
   std::set<FilingStatus> filingStatuses;
   std::map<FilingStatus, const TieredTaxer& > incomeTaxers;
   std::map<FilingStatus, const TieredTaxer& > socialTaxers;
-  std::map<FilingStatus, const Withholder& > withholders;
+  std::map<FilingStatus, const WithholdingTable& > withholders;
   std::map<PayrollFrequency, QuantLib::Money > exemptionAllowanceTable;
 
  public:
@@ -33,7 +33,7 @@ class State {
   const std::string& getName() { return jurisdictionName; }
   inline Year getYear() { return year; }
 
-  const Withholder& getWithholder(const FilingStatus& status) {
+  const WithholdingTable& getWithholder(const FilingStatus& status) {
     assert(filingStatuses.count(status) > 0);
     assert(withholders.count(status) > 0);
     return withholders[status];
