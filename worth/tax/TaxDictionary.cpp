@@ -6,4 +6,4 @@
  */
 #include "TaxDictionary.h"
 
-TaxDictionary* TaxDictionary::theInstance = NULL;
+Worth::TaxDictionary* Worth::TaxDictionary::theInstance = NULL;

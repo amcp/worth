@@ -24,6 +24,7 @@ using namespace std;
 using namespace __gnu_cxx;
 using namespace QuantLib;
 
+namespace Worth {
 typedef hash_map<string, Money, hash<string > > ExemptionMap;
 typedef hash_map<string, TieredTaxer* , hash<string > > IncomeTaxerMap;
 typedef hash_map<string, hash_map<string, TieredTaxer*, hash<string > >, hash<string > > SocialTaxerMap;
@@ -164,5 +165,6 @@ public:
 		return map.count(jurisdiction) > 0;
 	}
 };
+}
 
 #endif /* TAXDICTIONARY_H_ */

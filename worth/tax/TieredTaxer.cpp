@@ -1,6 +1,6 @@
 #include "TieredTaxer.h"
 
-Money TieredTaxer::computeTax( Money income) const {
+Money Worth::TieredTaxer::computeTax(const Money& income) const {
 	Money total(income.currency(), 0);
 
 	if(income.currency() != this->currency) {

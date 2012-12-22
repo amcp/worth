@@ -67,7 +67,7 @@ JobPayment* Job::getNextPayment() {
   Money payrollAdjSocialIncome = getAdjustedAnnualSocialIncome(
       extraPayInPeriod);
   Money payrollAdjIncome = getAdjustedAnnualIncome(extraPayInPeriod);
-  TaxDictionary* dict = TaxDictionary::getInstance();
+  Worth::TaxDictionary* dict = Worth::TaxDictionary::getInstance();
   unsigned int year = getCurrentPaymentDate().year();
 
   hash_map<string, Money, hash<string> > stateIncomeTaxes;
@@ -115,14 +115,14 @@ JobPayment* Job::getNextPayment() {
     if (!dict->hasSocialTaxers(year, (*it).first)) {
       continue;
     }
-    hash_map<string, TieredTaxer*, hash<string> > taxers =
+    hash_map<string, Worth::TieredTaxer*, hash<string> > taxers =
         dict->getSocialTaxers(year, (*it).first);
-    for (hash_map<string, TieredTaxer*, hash<string> >::const_iterator jurisTaxerIt =
+    for (hash_map<string, Worth::TieredTaxer*, hash<string> >::const_iterator jurisTaxerIt =
         taxers.begin(); jurisTaxerIt != taxers.end(); jurisTaxerIt++) {
       hash_map<string, Rate, hash<string> >::const_iterator jurisIt =
           taxJurisdictions.find((*it).first);
       Rate jurisRate = (*jurisIt).second;
-      hash_map<string, TieredTaxer*, hash<string> >::const_iterator taxerIt =
+      hash_map<string, Worth::TieredTaxer*, hash<string> >::const_iterator taxerIt =
           taxers.find((*jurisTaxerIt).first);
       Money proratedSocialTax = jurisRate
           * (*taxerIt).second->computeTax(payrollAdjSocialIncome)

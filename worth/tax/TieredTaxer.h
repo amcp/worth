@@ -17,6 +17,7 @@
 using namespace std;
 using namespace QuantLib;
 
+namespace Worth {
 class TieredTaxer {
 private:
 	Currency currency;
@@ -41,9 +42,9 @@ public:
 		rates.push_back(rate);
 	}
 
-	Money computeTax(Money income) const;
+	Money computeTax(const Money& income) const;
 
-	inline double computeMarginalRate(Money income) {
+	inline double computeMarginalRate(const Money& income) {
 		double result = 0;
 		for(size_t i = 0; i < tiers.size(); i++) {
 			if(tiers[i] > income) {
@@ -55,9 +56,10 @@ public:
 		return result;
 	}
 
-	inline double computeEffectiveRate( Money& income) {
-		return computeTax(income) / income;
+	inline double computeEffectiveRate(const Money& income) {
+		return income > 0 * currency ? computeTax(income) / income : 0.0;
 	}
 };
+}
 
 #endif /* TIEREDTAXER_H_ */
