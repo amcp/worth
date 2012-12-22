@@ -45,15 +45,16 @@ public:
 	Money computeTax(const Money& income) const;
 
 	inline double computeMarginalRate(const Money& income) {
-		double result = 0;
-		for(size_t i = 0; i < tiers.size(); i++) {
-			if(tiers[i] > income) {
-				result = rates[i];
-				break;
-			}
-		}
+	  double rate = 0.0;
+	  for (int i = tiers.size() - 1; i >= 0; i--) {
+	      if(income < tiers[i]) {
+	        //go to the next one if the current tier is greater than the working remainder
+	        continue;
+	      }
+	      rate = rates[i];
+	    }
 
-		return result;
+	  return rate;
 	}
 
 	inline double computeEffectiveRate(const Money& income) {
