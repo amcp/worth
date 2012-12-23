@@ -66,13 +66,13 @@ class State {
     exemptionAllowanceTable[freq] = allowance;
   }
 
-  const QuantLib::Money& getEstimatedAllowance(PayrollFrequency freq) const {
+  const QuantLib::Money& getEstimatedDeduction(PayrollFrequency freq) const {
       assert(estimatedAllowanceTable.count(freq) > 0);
       std::map<PayrollFrequency, QuantLib::Money >::const_iterator it = estimatedAllowanceTable.find(freq);
       return it->second;
     }
 
-    void addEstimatedAllowance(PayrollFrequency freq, const QuantLib::Money& allowance) {
+    void addEstimatedDeduction(PayrollFrequency freq, const QuantLib::Money& allowance) {
       estimatedAllowanceTable[freq] = allowance;
     }
 

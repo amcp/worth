@@ -34,7 +34,7 @@ class Withholder {
       return 0 * state->getCurrency();
     }
 
-    QuantLib::Money estimatedDeduction = state->getEstimatedAllowance(freq) * additionalWithholdingExemptions;
+    QuantLib::Money estimatedDeduction = state->getEstimatedDeduction(freq) * additionalWithholdingExemptions;
     QuantLib::Money taxableIncome = income - state->getStandardDeduction(status, freq) - estimatedDeduction;
     QuantLib::Money computedTax = state->getWithholder(status)->getTax(freq, taxableIncome);
     QuantLib::Money exemptionAmount = state->getExemptionAllowance(freq) * exemptionAllowances;
