@@ -82,7 +82,7 @@ public:
 		return income > 0 * currency ? computeTax(income) / income : 0.0;
 	}
 
-	static TieredTaxer* generateTieredTaxer(const std::string& str, Currency& cur) {
+	static TieredTaxer* generateTieredTaxer(const std::string& str, Currency& cur, double rateScalingFactor = 1.0) {
 	  TieredTaxer* result = new TieredTaxer(cur);
 
 	  //get tokens in str
@@ -90,11 +90,11 @@ public:
 	  boost::tokenizer<boost::char_separator<char> > tok(str, sep);
 
 	  for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg) {
-	    std::string rateString = *beg;
+	    std::string moneyString = *beg;
 	    assert(beg != tok.end());
 	    ++beg;
-	    std::string moneyString = *beg;
-	    result->addTier(boost::lexical_cast<double>(moneyString) * cur, boost::lexical_cast<double>(rateString));
+	    std::string rateString = *beg;
+	    result->addTier(boost::lexical_cast<double>(moneyString) * cur, boost::lexical_cast<double>(rateString) * rateScalingFactor);
 	  }
 
 	  return result;

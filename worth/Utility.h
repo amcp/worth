@@ -8,6 +8,7 @@
 #ifndef UTILITY_H_
 #define UTILITY_H_
 
+#include <vector>
 #include <string>
 #include <ext/hash_map>
 #include <ql/time/date.hpp>
@@ -63,6 +64,8 @@ class Utility {
     return Schedule(start, end, period, calendar, convention,
                     terminationDateConvention, dateGenerationRule, false);
   }
+
+  std::vector<std::string> readLines(const std::string& fname) ;
 };
 }
 
