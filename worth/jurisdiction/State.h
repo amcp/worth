@@ -22,14 +22,24 @@ class State {
   std::string jurisdictionName;
   Year year;
   QuantLib::Currency currency;
-  std::set<FilingStatus> filingStatuses;
-  std::map<FilingStatus, const WithholdingTable* > withholdingTables;
+  std::map<FilingStatus, WithholdingTable* > withholdingTables;
   std::map<PayrollFrequency, QuantLib::Money > exemptionAllowanceTable;
+  std::map<PayrollFrequency, QuantLib::Money > estimatedAllowanceTable;
   std::map<FilingStatus, std::map<PayrollFrequency, QuantLib::Money > > lowIncomeExemptionTable;
   std::map<FilingStatus, std::map<PayrollFrequency, QuantLib::Money > > standardDeductionTable;
 
  public:
   State(std::string name, Year yearIn, QuantLib::Currency cur) : jurisdictionName(name), year(yearIn), currency(cur) { }
+  ~State() {
+    for(std::map<FilingStatus, WithholdingTable* >::iterator it = withholdingTables.begin(); it != withholdingTables.end(); ++it) {
+      delete it->second;
+    }
+    withholdingTables.clear();
+    exemptionAllowanceTable.clear();
+    estimatedAllowanceTable.clear();
+    lowIncomeExemptionTable.clear();
+    standardDeductionTable.clear();
+  }
 
   const std::string& getName() { return jurisdictionName; }
   inline Year getYear() { return year; }
@@ -38,11 +48,11 @@ class State {
     //assert(filingStatuses.count(status) > 0);
     assert(withholdingTables.count(status) > 0);
 
-    std::map<FilingStatus, const WithholdingTable* >::const_iterator it = withholdingTables.find(status);
+    std::map<FilingStatus, WithholdingTable* >::const_iterator it = withholdingTables.find(status);
     return it->second;
   }
 
-  void addWithholder(const FilingStatus& status, const WithholdingTable* table) {
+  void addWithholder(const FilingStatus& status, WithholdingTable* table) {
     withholdingTables[status] = table;
   }
 
@@ -55,6 +65,16 @@ class State {
   void addExemptionAllowance(PayrollFrequency freq, const QuantLib::Money& allowance) {
     exemptionAllowanceTable[freq] = allowance;
   }
+
+  const QuantLib::Money& getEstimatedAllowance(PayrollFrequency freq) const {
+      assert(estimatedAllowanceTable.count(freq) > 0);
+      std::map<PayrollFrequency, QuantLib::Money >::const_iterator it = estimatedAllowanceTable.find(freq);
+      return it->second;
+    }
+
+    void addEstimatedAllowance(PayrollFrequency freq, const QuantLib::Money& allowance) {
+      estimatedAllowanceTable[freq] = allowance;
+    }
 
   const QuantLib::Currency& getCurrency() const {
     return currency;
@@ -92,12 +112,6 @@ class State {
 
   void addStandardDeduction(const FilingStatus& status, PayrollFrequency freq, QuantLib::Money mon) {
     standardDeductionTable[status][freq] = mon;
-  }
-
-  ~State() {
-    filingStatuses.clear();
-    withholdingTables.clear();
-    exemptionAllowanceTable.clear();
   }
 };
 

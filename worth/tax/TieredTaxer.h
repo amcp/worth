@@ -11,8 +11,11 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <cassert>
 #include <ql/money.hpp>
 #include <ql/currency.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 
 using namespace std;
 using namespace QuantLib;
@@ -63,7 +66,7 @@ public:
     return total;
   }
 
-	inline double computeMarginalRate(const Money& income) {
+	inline double computeMarginalRate(const Money& income) const {
 	  double rate = 0.0;
 	  for (unsigned int i = 0; i < tiers.size(); i++) {
 	    if(income < tiers[i]) {
@@ -77,6 +80,24 @@ public:
 
 	inline double computeEffectiveRate(const Money& income) {
 		return income > 0 * currency ? computeTax(income) / income : 0.0;
+	}
+
+	static TieredTaxer* generateTieredTaxer(const std::string& str, Currency& cur) {
+	  TieredTaxer* result = new TieredTaxer(cur);
+
+	  //get tokens in str
+	  boost::char_separator<char> sep(", ");
+	  boost::tokenizer<boost::char_separator<char> > tok(str, sep);
+
+	  for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg) {
+	    std::string rateString = *beg;
+	    assert(beg != tok.end());
+	    ++beg;
+	    std::string moneyString = *beg;
+	    result->addTier(boost::lexical_cast<double>(moneyString) * cur, boost::lexical_cast<double>(rateString));
+	  }
+
+	  return result;
 	}
 };
 }

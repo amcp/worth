@@ -16,24 +16,28 @@ namespace Worth {
 
 class Withholder {
  private:
-  const State& state;
+  State* state;
  public:
-  explicit Withholder(const State& stateIn) : state(stateIn) {
+  explicit Withholder(State* stateIn) : state(stateIn) {
 
   }
-  ~Withholder() {}
+  ~Withholder() {
+    delete state;
+  }
 
   QuantLib::Money computeWithholding(QuantLib::Money income,
                                      PayrollFrequency freq,
                                      FilingStatus status,
-                                     unsigned int withholdingExemptions) {
-if(state.hasLowIncomeExemptions() && income <= state.getLowIncomeExemption(status, freq)) {
-      return 0 * state.getCurrency();
+                                     unsigned int exemptionAllowances,
+                                     unsigned int additionalWithholdingExemptions) {
+    if(state->hasLowIncomeExemptions() && income <= state->getLowIncomeExemption(status, freq)) {
+      return 0 * state->getCurrency();
     }
 
-    QuantLib::Money taxableIncome = income - state.getStandardDeduction(status, freq);
-    QuantLib::Money computedTax = state.getWithholder(status)->getTax(freq, taxableIncome);
-    QuantLib::Money exemptionAmount = state.getExemptionAllowance(freq) * withholdingExemptions;
+    QuantLib::Money estimatedDeduction = state->getEstimatedAllowance(freq) * additionalWithholdingExemptions;
+    QuantLib::Money taxableIncome = income - state->getStandardDeduction(status, freq) - estimatedDeduction;
+    QuantLib::Money computedTax = state->getWithholder(status)->getTax(freq, taxableIncome);
+    QuantLib::Money exemptionAmount = state->getExemptionAllowance(freq) * exemptionAllowances;
 
     return computedTax - exemptionAmount;
   }
