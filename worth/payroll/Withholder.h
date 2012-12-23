@@ -29,13 +29,33 @@ class Withholder {
                                      PayrollFrequency freq,
                                      FilingStatus status,
                                      unsigned int exemptionAllowances,
-                                     unsigned int additionalWithholdingExemptions) {
-    if(state->hasLowIncomeExemptions() && income <= state->getLowIncomeExemption(status, freq)) {
-      return 0 * state->getCurrency();
+                                     unsigned int additionalWithholdingAllowances) {
+
+    if(state->hasLowIncomeExemptions()) {
+      std::string statusToCheck = status;
+      if(state->getName() == "CA") {
+        if(status == "MARRIED" && exemptionAllowances > 1) {
+          statusToCheck = "HEADOFHOUSEHOLD";
+        } else if(status == "MARRIED" && exemptionAllowances <= 1) {
+          statusToCheck = "SINGLE";
+        }
+      }
+
+      if(income <= state->getLowIncomeExemption(statusToCheck, freq)) {
+        return 0 * state->getCurrency();
+      }
     }
 
-    QuantLib::Money estimatedDeduction = state->getEstimatedDeduction(freq) * additionalWithholdingExemptions;
-    QuantLib::Money taxableIncome = income - state->getStandardDeduction(status, freq) - estimatedDeduction;
+    QuantLib::Money estimatedDeduction = state->getEstimatedDeduction(freq) * additionalWithholdingAllowances;
+    QuantLib::Money standardDeduction = state->getStandardDeduction(status, freq);
+    if(state->getName() == "CA") {
+      if(status == "MARRIED" && exemptionAllowances > 1) {
+        standardDeduction = state->getStandardDeduction("HEADOFHOUSEHOLD", freq);
+      } else if(status == "MARRIED" && exemptionAllowances <= 1) {
+        standardDeduction = state->getStandardDeduction("SINGLE", freq);
+      }
+    }
+    QuantLib::Money taxableIncome = income - standardDeduction - estimatedDeduction;
     QuantLib::Money computedTax = state->getWithholder(status)->getTax(freq, taxableIncome);
     QuantLib::Money exemptionAmount = state->getExemptionAllowance(freq) * exemptionAllowances;
 
