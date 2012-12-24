@@ -6,7 +6,7 @@
 
 namespace Worth {
 enum PayrollFrequency {
-  Daily,
+  Daily = 0,
   Weekly,
   Biweekly,
   Semimonthly,

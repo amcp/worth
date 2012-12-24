@@ -128,8 +128,8 @@ class State {
     return currency;
   }
 
-  bool hasLowIncomeExemptions() const {
-    return lowIncomeExemptionTable.size() > 0;
+  bool hasLowIncomeExemptionForStatus(const FilingStatus& status) const {
+    return lowIncomeExemptionTable.count(status) > 0;
   }
 
   const QuantLib::Money& getLowIncomeExemption(const FilingStatus& status,

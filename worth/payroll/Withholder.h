@@ -31,19 +31,17 @@ class Withholder {
                                      unsigned int exemptionAllowances,
                                      unsigned int additionalWithholdingAllowances) {
 
-    if(state->hasLowIncomeExemptions()) {
-      std::string statusToCheck = status;
-      if(state->getName() == "CA") {
-        if(status == "MARRIED" && exemptionAllowances > 1) {
-          statusToCheck = "MARRIED2";
-        } else if(status == "MARRIED" && exemptionAllowances <= 1) {
-          statusToCheck = "MARRIED1";
-        }
+    std::string statusToCheck = status;
+    if(state->getName() == "CA") {
+      if(status == "MARRIED" && exemptionAllowances > 1) {
+        statusToCheck = "MARRIED2";
+      } else if(status == "MARRIED" && exemptionAllowances <= 1) {
+        statusToCheck = "MARRIED1";
       }
+    }
 
-      if(income <= state->getLowIncomeExemption(statusToCheck, freq)) {
-        return 0 * state->getCurrency();
-      }
+    if(state->hasLowIncomeExemptionForStatus(statusToCheck) && income <= state->getLowIncomeExemption(statusToCheck, freq)) {
+      return 0 * state->getCurrency();
     }
 
     QuantLib::Money estimatedDeduction;
