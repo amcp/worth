@@ -18,18 +18,22 @@ class WithholdingTable {
  private:
   std::map<PayrollFrequency, TieredTaxer*> table;
  public:
-  WithholdingTable() {}
+  WithholdingTable() {
+  }
 
   ~WithholdingTable() {
-    for (std::map<PayrollFrequency, TieredTaxer*>::iterator it = table.begin(); it != table.end(); ++it) {
+    for (std::map<PayrollFrequency, TieredTaxer*>::iterator it = table.begin();
+        it != table.end(); ++it) {
       delete (*it).second;
     }
     table.clear();
   }
 
-  QuantLib::Money getTax(PayrollFrequency freq, const QuantLib::Money& taxable) const {
+  QuantLib::Money getTax(PayrollFrequency freq,
+                         const QuantLib::Money& taxable) const {
     assert(table.count(freq) > 0);
-    std::map<PayrollFrequency, TieredTaxer*>::const_iterator it = table.find(freq);
+    std::map<PayrollFrequency, TieredTaxer*>::const_iterator it = table.find(
+        freq);
     return it->second->computeTax(taxable);
   }
 
@@ -41,37 +45,43 @@ class WithholdingTable {
     return table.count(freq) > 0;
   }
 
-  static WithholdingTable* generateWithholdingTable(std::vector<std::string> lines, QuantLib::Currency& cur) {
+  static WithholdingTable* generateWithholdingTable(
+      std::vector<std::string> lines, QuantLib::Currency& cur,
+      double rateScalingFactor) {
     WithholdingTable* result = new WithholdingTable();
-    for(std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it) {
+    for (std::vector<std::string>::iterator it = lines.begin();
+        it != lines.end(); ++it) {
       boost::char_separator<char> sep(":");
       boost::tokenizer<boost::char_separator<char> > tok(*it, sep);
-      boost::tokenizer<boost::char_separator<char> >::iterator tokIt = tok.begin();
+      boost::tokenizer<boost::char_separator<char> >::iterator tokIt =
+          tok.begin();
       std::string freqString = *tokIt;
       assert(tokIt != tok.end());
       ++tokIt;
       std::string tieredTaxerString = *tokIt;
 
       PayrollFrequency freq;
-      if(freqString == "DAILY") {
+      if (freqString == "DAILY") {
         freq = Worth::Daily;
-      } else if(freqString == "WEEKLY") {
+      } else if (freqString == "WEEKLY") {
         freq = Worth::Weekly;
-      } else if(freqString == "BIWEEKLY") {
+      } else if (freqString == "BIWEEKLY") {
         freq = Worth::Biweekly;
-      } else if(freqString == "SEMIMONTHLY") {
+      } else if (freqString == "SEMIMONTHLY") {
         freq = Worth::Semimonthly;
-      } else if(freqString == "MONTHLY") {
+      } else if (freqString == "MONTHLY") {
         freq = Worth::Monthly;
-      } else if(freqString == "QUARTERLY") {
+      } else if (freqString == "QUARTERLY") {
         freq = Worth::Quarterly;
-      } else if(freqString == "SEMIANNUAL") {
+      } else if (freqString == "SEMIANNUAL") {
         freq = Worth::Semiannual;
-      } else if(freqString == "ANNUAL") {
+      } else if (freqString == "ANNUAL") {
         freq = Worth::Annual;
       }
 
-      TieredTaxer* taxer = TieredTaxer::generateTieredTaxer(tieredTaxerString, cur);
+      TieredTaxer* taxer = TieredTaxer::generateTieredTaxer(tieredTaxerString,
+                                                            cur,
+                                                            rateScalingFactor);
 
       result->addFrequency(freq, taxer);
     }

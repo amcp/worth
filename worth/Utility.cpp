@@ -21,7 +21,7 @@ Worth::Utility* Worth::Utility::theInstance = NULL;
 // http://en.wikipedia.org/wiki/Return_value_optimization
 // http://en.wikipedia.org/wiki/Copy_elision
 std::vector<std::string> Worth::Utility::readLines(const std::string& fname) {
-  FILE* fp = fopen("data/2013_CA_SINGLE.txt.dat","r");
+  FILE* fp = fopen(fname.c_str(),"r");
 
   if (!fp) {
     throw std::runtime_error("Can't open file: " + std::string(std::strerror(errno)));
