@@ -37,6 +37,7 @@ class State {
   std::map<FilingStatus, WithholdingTable*> withholdingTables;
   AllowanceFrequencyTable exemptionAllowanceTable;
   AllowanceFrequencyTable estimatedAllowanceTable;
+  AllowanceFrequencyTable withholdingAllowanceTable;
   StatusFrequencyTable lowIncomeExemptionTable;
   StatusFrequencyTable standardDeductionTable;
 
@@ -124,6 +125,29 @@ class State {
     return estimatedAllowanceTable.count(allowances) > 0;
   }
 
+  const QuantLib::Money& getWithholdingAllowance(unsigned int allowances,
+                                               PayrollFrequency freq) const {
+    assert(withholdingAllowanceTable.count(allowances) > 0);
+    AllowanceFrequencyTable::const_iterator it = withholdingAllowanceTable.find(
+        allowances);
+    assert(it->second.count(freq) > 0);
+    FrequencyTable::const_iterator allowanceIt = it->second.find(freq);
+    return allowanceIt->second;
+  }
+
+  void addWithholdingAllowance(unsigned int allowances, PayrollFrequency freq,
+                             const QuantLib::Money& allowanceValue) {
+    withholdingAllowanceTable[allowances][freq] = allowanceValue;
+  }
+
+  void addWithholdingAllowances(AllowanceFrequencyTable::const_iterator first, AllowanceFrequencyTable::const_iterator last) {
+    withholdingAllowanceTable.insert(first, last);
+  }
+
+  bool hasAllowancesInWithholdingAllowanceTable(unsigned int allowances) {
+    return withholdingAllowanceTable.count(allowances) > 0;
+  }
+
   const QuantLib::Currency& getCurrency() const {
     return currency;
   }
@@ -154,13 +178,17 @@ class State {
 
   const QuantLib::Money& getStandardDeduction(const FilingStatus& status,
                                               PayrollFrequency freq) const {
-    assert(standardDeductionTable.count(status) > 0);
+    assert(hasStandardDeductionForStatus(status));
     StatusFrequencyTable::const_iterator itToFreqExMap;
     itToFreqExMap = standardDeductionTable.find(status);
     assert(itToFreqExMap->second.count(freq) > 0);
     FrequencyTable::const_iterator itToExMap;
     itToExMap = itToFreqExMap->second.find(freq);
     return itToExMap->second;
+  }
+
+  bool hasStandardDeductionForStatus(const FilingStatus& status) const {
+    return standardDeductionTable.count(status) > 0;
   }
 
   void addStandardDeduction(const FilingStatus& status, PayrollFrequency freq,
