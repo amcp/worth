@@ -2,22 +2,26 @@
  * State.h
  *
  *  Created on: Dec 21, 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef STATE_H_
-#define STATE_H_
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <cassert>
+#ifndef WORTH_JURISDICTION_STATE_H_
+#define WORTH_JURISDICTION_STATE_H_
+
 #include <boost/algorithm/string.hpp>
 #include <boost/bind.hpp>
 #include <ql/money.hpp>
 #include <ql/currency.hpp>
-#include "../payroll/Withholder.h"
-#include "../payroll/PayrollPeriods.h"
+#include <cassert>
+
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <map>
+#include <iostream>
+
+#include "worth/payroll/Withholder.h"
+#include "worth/payroll/PayrollPeriods.h"
 
 namespace Worth {
 
@@ -67,7 +71,7 @@ class State {
   }
 
   const WithholdingTable* getWithholder(const FilingStatus& status) const {
-    //assert(filingStatuses.count(status) > 0);
+    // assert(filingStatuses.count(status) > 0);
     assert(withholdingTables.count(status) > 0);
 
     std::map<FilingStatus, WithholdingTable*>::const_iterator it =
@@ -207,7 +211,7 @@ class State {
 
   static AllowanceFrequencyTable generateAllowanceFrequencyTable(
       std::vector<std::string> lines, QuantLib::Currency& cur) {
-    //first line is column titles
+    // first line is column titles
     assert(lines.size() > 0);
 
     std::vector<std::string>::iterator lineIt = lines.begin();
@@ -242,7 +246,7 @@ class State {
 
   static StatusFrequencyTable generateStatusFrequencyTable(
       std::vector<std::string> lines, QuantLib::Currency& cur) {
-    //first line is filing status names titles
+    // first line is filing status names titles
     assert(lines.size() > 0);
 
     std::vector<std::string>::iterator lineIt = lines.begin();
@@ -274,4 +278,4 @@ class State {
 };
 
 } /* namespace Worth */
-#endif /* STATE_H_ */
+#endif  // WORTH_JURISDICTION_STATE_H_

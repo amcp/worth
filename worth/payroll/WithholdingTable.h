@@ -2,21 +2,25 @@
  * WithholdingTable.h
  *
  *  Created on: Dec 21, 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef WITHHOLDINGTABLE_H_
-#define WITHHOLDINGTABLE_H_
+#ifndef WORTH_PAYROLL_WITHHOLDINGTABLE_H_
+#define WORTH_PAYROLL_WITHHOLDINGTABLE_H_
+
 
 #include <cassert>
 #include <vector>
 #include <string>
-#include "PayrollPeriods.h"
+#include <map>
+#include "worth/payroll/PayrollPeriods.h"
+
 
 namespace Worth {
 class WithholdingTable {
  private:
   std::map<PayrollFrequency, TieredTaxer*> table;
+
  public:
   WithholdingTable() {
   }
@@ -90,4 +94,4 @@ class WithholdingTable {
   }
 };
 }
-#endif /* WITHHOLDINGTABLE_H_ */
+#endif  // WORTH_PAYROLL_WITHHOLDINGTABLE_H_

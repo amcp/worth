@@ -2,29 +2,31 @@
  * TaxDictionary.h
  *
  *  Created on: 22 √ÎÙ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
 #ifndef WORTH_TAX_TAXDICTIONARY_H_
 #define WORTH_TAX_TAXDICTIONARY_H_
 
+#include <boost/lexical_cast.hpp>
+#include <ql/money.hpp>
+#include <ql/currencies/america.hpp>
+
+#include <ext/hash_map>
 #include <string>
 #include <sstream>
 #include <vector>
-#include <ext/hash_map>
-#include <ql/money.hpp>
-#include <boost/lexical_cast.hpp>
-#include <ql/currencies/america.hpp>
 
-#include "TieredTaxer.h"
-#include "../Utility.h"
+#include "worth/tax/TieredTaxer.h"
+#include "worth/Utility.h"
 
 namespace Worth {
 typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
     __gnu_cxx ::hash<std::string> > ExemptionMap;
 typedef __gnu_cxx ::hash_map<std::string, TieredTaxer*,
     __gnu_cxx ::hash<std::string> > IncomeTaxerMap;
-typedef __gnu_cxx ::hash_map<std::string, IncomeTaxerMap, __gnu_cxx ::hash<std::string> > SocialTaxerMap;
+typedef __gnu_cxx ::hash_map<std::string, IncomeTaxerMap,
+    __gnu_cxx ::hash<std::string> > SocialTaxerMap;
 
 class TaxDictionary {
  private:
@@ -42,7 +44,7 @@ class TaxDictionary {
     std::vector<std::string> lines = util->readLines(fname);
     for (std::vector<std::string>::iterator lineIt = lines.begin();
         lineIt != lines.end(); ++lineIt) {
-      //get tokens in line
+      // get tokens in line
       std::stringstream strstr(*lineIt);
       std::istream_iterator<std::string> it(strstr);
       std::istream_iterator<std::string> end;
@@ -51,13 +53,14 @@ class TaxDictionary {
 
       if (tokens.size() == 0) {
         continue;
-      }/* else {
-       std::vector<std::string>::iterator tokit
-       for (tokit = tokens.begin(); tokit != tokens.end(); tokit++) {
-       cout << *tokit << ", ";
-       }
-       cout << endl;
-       }*/
+      }
+      // else {
+      // std::vector<std::string>::iterator tokit
+      // for (tokit = tokens.begin(); tokit != tokens.end(); tokit++) {
+      // cout << *tokit << ", ";
+      // }
+      // cout << endl;
+      // }
 
       // process record
       unsigned int year = boost::lexical_cast<unsigned int>(tokens[0]);
@@ -142,7 +145,7 @@ class TaxDictionary {
     return (*it).second;
   }
 
-  __gnu_cxx ::hash_map<std::string, TieredTaxer*, __gnu_cxx ::hash<std::string> > getSocialTaxers(
+  __gnu_cxx::hash_map<std::string, TieredTaxer*, __gnu_cxx::hash<std::string> > getSocialTaxers(
       unsigned int year, const std::string jurisdiction) {
     std::stringstream msg1;
     msg1 << "Social taxer data missing for year " << year << ".";

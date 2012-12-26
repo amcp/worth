@@ -1,8 +1,15 @@
-#ifndef WORTH_PAYROLL_PAYROLLFREQUENCY_H_
-#define WORTH_PAYROLL_PAYROLLFREQUENCY_H_
+/*
+ * PayrollPeriods.h
+ *
+ *  Created on: Dec 21, 2012
+ *   Copyright 2012 Alexander Patrikalakis
+ */
 
-#include <string>
+#ifndef WORTH_PAYROLL_PAYROLLPERIODS_H_
+#define WORTH_PAYROLL_PAYROLLPERIODS_H_
+
 #include <boost/algorithm/string.hpp>
+#include <string>
 
 namespace Worth {
 enum PayrollFrequency {
@@ -36,7 +43,7 @@ static PayrollFrequency convertStringToPayrollFrequency(const std::string& in) {
     freq = Worth::Semiannual;
   } else if (str == "ANNUAL") {
     freq = Worth::Annual;
-  } else {  //dummy value for ALLOWANCES
+  } else {  // dummy value for ALLOWANCES
     freq = Worth::Unknown;
   }
 
@@ -44,4 +51,4 @@ static PayrollFrequency convertStringToPayrollFrequency(const std::string& in) {
 }
 }
 
-#endif  // WORTH_PAYROLL_PAYROLLFREQUENCY_H_
+#endif  // WORTH_PAYROLL_PAYROLLPERIODS_H_

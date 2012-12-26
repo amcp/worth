@@ -2,25 +2,26 @@
  * Withholder.h
  *
  *  Created on: Dec 21, 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef WITHHOLDER_H_
-#define WITHHOLDER_H_
+#ifndef WORTH_PAYROLL_WITHHOLDER_H_
+#define WORTH_PAYROLL_WITHHOLDER_H_
 
 #include <ql/money.hpp>
-#include "PayrollPeriods.h"
-#include "../jurisdiction/State.h"
+#include <string>
+#include "worth/payroll/PayrollPeriods.h"
+#include "worth/jurisdiction/State.h"
 
 namespace Worth {
 
 class Withholder {
  private:
   State* state;
+
  public:
   explicit Withholder(State* stateIn)
       : state(stateIn) {
-
   }
   ~Withholder() {
     delete state;
@@ -158,4 +159,4 @@ class Withholder {
 };
 
 } /* namespace Worth */
-#endif /* WITHHOLDER_H_ */
+#endif  // WORTH_PAYROLL_WITHHOLDER_H_
