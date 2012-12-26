@@ -5,13 +5,12 @@
  *      Author: amcp
  */
 
-#ifndef TAXDICTIONARY_H_
-#define TAXDICTIONARY_H_
+#ifndef WORTH_TAX_TAXDICTIONARY_H_
+#define WORTH_TAX_TAXDICTIONARY_H_
 
 #include <string>
-#include <iostream>
 #include <sstream>
-#include <fstream>
+#include <vector>
 #include <ext/hash_map>
 #include <ql/money.hpp>
 #include <boost/lexical_cast.hpp>
@@ -20,144 +19,157 @@
 #include "TieredTaxer.h"
 #include "../Utility.h"
 
-using namespace std;
-using namespace __gnu_cxx;
-using namespace QuantLib;
-
 namespace Worth {
-typedef hash_map<string, Money, hash<string > > ExemptionMap;
-typedef hash_map<string, TieredTaxer* , hash<string > > IncomeTaxerMap;
-typedef hash_map<string, hash_map<string, TieredTaxer*, hash<string > >, hash<string > > SocialTaxerMap;
+typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
+    __gnu_cxx ::hash<std::string> > ExemptionMap;
+typedef __gnu_cxx ::hash_map<std::string, TieredTaxer*,
+    __gnu_cxx ::hash<std::string> > IncomeTaxerMap;
+typedef __gnu_cxx ::hash_map<std::string, IncomeTaxerMap, __gnu_cxx ::hash<std::string> > SocialTaxerMap;
 
 class TaxDictionary {
-private:
-	TaxDictionary() {}
-	hash_map<unsigned int, ExemptionMap> exemptionAmtPerJuris;
-	hash_map<unsigned int, IncomeTaxerMap> incomeTaxers;
-	hash_map<unsigned int, SocialTaxerMap> socialTaxers;
-	Currency currency;
+ private:
+  TaxDictionary() {
+  }
+  __gnu_cxx ::hash_map<unsigned int, ExemptionMap> exemptionAmtPerJuris;
+  __gnu_cxx ::hash_map<unsigned int, IncomeTaxerMap> incomeTaxers;
+  __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap> socialTaxers;
+  QuantLib::Currency currency;
 
-	TaxDictionary(string fname, Currency currencyIn) : currency(currencyIn){
-		ifstream is;
-		is.open(fname.c_str(), ios::in);
+  TaxDictionary(std::string fname, QuantLib::Currency currencyIn)
+      : currency(currencyIn) {
+    Utility* util = Utility::getInstance();
 
-		if(is.is_open()) {
-			string line;
-			while(is.good()) {
-				//get line
-				getline(is,line);
+    std::vector<std::string> lines = util->readLines(fname);
+    for (std::vector<std::string>::iterator lineIt = lines.begin();
+        lineIt != lines.end(); ++lineIt) {
+      //get tokens in line
+      std::stringstream strstr(*lineIt);
+      std::istream_iterator<std::string> it(strstr);
+      std::istream_iterator<std::string> end;
+      std::vector<std::string> tokens;
+      tokens.insert(tokens.begin(), it, end);
 
-				//get tokens in line
-				stringstream strstr(line);
-				istream_iterator<string> it(strstr);
-				istream_iterator<string> end;
-				vector<string> tokens;
-				tokens.insert(tokens.begin(), it, end);
+      if (tokens.size() == 0) {
+        continue;
+      }/* else {
+       std::vector<std::string>::iterator tokit
+       for (tokit = tokens.begin(); tokit != tokens.end(); tokit++) {
+       cout << *tokit << ", ";
+       }
+       cout << endl;
+       }*/
 
-				if(tokens.size() == 0) {
-					continue;
-				}/* else {
-					for(vector<string>::iterator tokit = tokens.begin(); tokit != tokens.end(); tokit++) {
-						cout << *tokit << ", ";
-					}
-					cout << endl;
-				}*/
+      // process record
+      unsigned int year = boost::lexical_cast<unsigned int>(tokens[0]);
+      std::string type = tokens[1];
+      std::string jurisdiction = tokens[2];
+      if (type.compare("INCOME") == 0) {
+        if (incomeTaxers[year].count(jurisdiction) == 0) {
+          incomeTaxers[year][jurisdiction] = new TieredTaxer(currency);
+        }
+        incomeTaxers[year][jurisdiction]->addTier(
+            boost::lexical_cast<double>(tokens[3]) * currency,
+            boost::lexical_cast<double>(tokens[4]));
+      } else if (type.compare("SOCIAL") == 0) {
+        std::string socialType = tokens[3];
+        if (socialTaxers[year][jurisdiction].count(socialType) == 0) {
+          socialTaxers[year][jurisdiction][socialType] = new TieredTaxer(
+              currency);
+        }
+        socialTaxers[year][jurisdiction][socialType]->addTier(
+            boost::lexical_cast<double>(tokens[4]) * currency,
+            boost::lexical_cast<double>(tokens[5]));
+      } else if (type.compare("EXEMPT") == 0) {
+        exemptionAmtPerJuris[year][jurisdiction] = boost::lexical_cast<double>(
+            tokens[3]) * currency;
+      } else {
+        std::cerr << "Unknown type " << type << std::endl;
+      }
+    }
+  }
 
-				//process record
-				unsigned int year = boost::lexical_cast<unsigned int>(tokens[0]);
-				string type = tokens[1];
-				string jurisdiction = tokens[2];
-				if(type.compare("INCOME") == 0) {
-					if(incomeTaxers[year].count(jurisdiction) == 0) {
-						incomeTaxers[year][jurisdiction] = new TieredTaxer(currency);
-					}
-					incomeTaxers[year][jurisdiction]->addTier(boost::lexical_cast<double>(tokens[3]) * currency, boost::lexical_cast<double>(tokens[4]));
-				} else if(type.compare("SOCIAL") == 0) {
-					string socialType = tokens[3];
-					if(socialTaxers[year][jurisdiction].count(socialType) == 0) {
-						socialTaxers[year][jurisdiction][socialType] = new TieredTaxer(currency);
-					}
-					socialTaxers[year][jurisdiction][socialType]->addTier(boost::lexical_cast<double>(tokens[4]) * currency, boost::lexical_cast<double>(tokens[5]));
-				} else if(type.compare("EXEMPT") == 0) {
-					exemptionAmtPerJuris[year][jurisdiction] = boost::lexical_cast<double>(tokens[3]) * currency;
-				} else {
-					cerr << "Unknown type " << type << endl;
-				}
-		    }
-		    is.close();
-		}
-	}
+ public:
+  ~TaxDictionary() {
+    // TODO(amcp) delete all the tax tier objects
+  }
 
-public:
+  void addIncomeTaxer(unsigned int year, std::string jurisdiction,
+                      TieredTaxer* taxer) {
+    incomeTaxers[year][jurisdiction] = taxer;
+  }
 
-	~TaxDictionary() {
-		//TODO delete all the tax tier objects
-	}
+  void addSocialTaxer(unsigned int year, std::string jurisdiction,
+                      std::string type, TieredTaxer* taxer) {
+    socialTaxers[year][jurisdiction][type] = taxer;
+  }
 
-	void addIncomeTaxer(unsigned int year, string jurisdiction, TieredTaxer* taxer) {
-		incomeTaxers[year][jurisdiction] = taxer;
-	}
+  void setExemptionAmount(unsigned int year, std::string jurisdiction,
+                          QuantLib::Money amt) {
+    exemptionAmtPerJuris[year][jurisdiction] = amt;
+  }
 
-	void addSocialTaxer(unsigned int year, string jurisdiction, string type, TieredTaxer* taxer) {
-		socialTaxers[year][jurisdiction][type] = taxer;
-	}
+  TieredTaxer* getIncomeTaxer(unsigned int year,
+                              const std::string jurisdiction) {
+    std::stringstream msg1;
+    msg1 << "Income taxer data missing for year " << year << ".";
+    QL_REQUIRE(incomeTaxers.count(year) > 0, msg1.str());
+    __gnu_cxx ::hash_map<unsigned int, IncomeTaxerMap>::const_iterator yearIt =
+        incomeTaxers.find(year);
+    IncomeTaxerMap map = (*yearIt).second;
 
-	void setExemptionAmount(unsigned int year, string jurisdiction, Money amt) {
-		exemptionAmtPerJuris[year][jurisdiction] = amt;
-	}
+    std::stringstream msg2;
+    msg1 << "Income taxer data missing for jurisdiction " << jurisdiction
+         << " in year " << year << ".";
+    QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
+    IncomeTaxerMap::const_iterator it = map.find(jurisdiction);
+    return (*it).second;
+  }
 
-	TieredTaxer* getIncomeTaxer(unsigned int year, const string jurisdiction) {
-		stringstream msg1;
-		msg1 << "Income taxer data missing for year " << year << ".";
-		QL_REQUIRE(incomeTaxers.count(year) > 0, msg1.str());
-		hash_map<unsigned int, IncomeTaxerMap>::const_iterator yearIt = incomeTaxers.find(year);
-		IncomeTaxerMap map = (*yearIt).second;
+  QuantLib::Money getExemptionAmount(unsigned int year,
+                                     const std::string jurisdiction) {
+    std::stringstream msg1;
+    msg1 << "Exemption amount data missing for year " << year << ".";
+    QL_REQUIRE(exemptionAmtPerJuris.count(year) > 0, msg1.str());
+    __gnu_cxx ::hash_map<unsigned int, ExemptionMap>::const_iterator yearIt =
+        exemptionAmtPerJuris.find(year);
+    ExemptionMap map = (*yearIt).second;
 
-		stringstream msg2;
-		msg1 << "Income taxer data missing for jurisdiction " << jurisdiction << " in year " << year << ".";
-		QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
-		IncomeTaxerMap::const_iterator it = map.find(jurisdiction);
-		return (*it).second;
-	}
+    std::stringstream msg2;
+    msg1 << "Exemption amount data missing for jurisdiction " << jurisdiction
+         << " in year " << year << ".";
+    QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
+    ExemptionMap::const_iterator it = map.find(jurisdiction);
+    return (*it).second;
+  }
 
-	Money getExemptionAmount(unsigned int year, const string jurisdiction) {
-		stringstream msg1;
-		msg1 << "Exemption amount data missing for year " << year << ".";
-		QL_REQUIRE(exemptionAmtPerJuris.count(year) > 0, msg1.str());
-		hash_map<unsigned int, ExemptionMap>::const_iterator yearIt = exemptionAmtPerJuris.find(year);
-		ExemptionMap map = (*yearIt).second;
+  __gnu_cxx ::hash_map<std::string, TieredTaxer*, __gnu_cxx ::hash<std::string> > getSocialTaxers(
+      unsigned int year, const std::string jurisdiction) {
+    std::stringstream msg1;
+    msg1 << "Social taxer data missing for year " << year << ".";
+    QL_REQUIRE(socialTaxers.count(year) > 0, msg1.str());
+    __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt =
+        socialTaxers.find(year);
+    SocialTaxerMap map = (*yearIt).second;
 
-		stringstream msg2;
-		msg1 << "Exemption amount data missing for jurisdiction " << jurisdiction << " in year " << year << ".";
-		QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
-		ExemptionMap::const_iterator it = map.find(jurisdiction);
-		return (*it).second;
-	}
+    std::stringstream msg2;
+    msg1 << "Social taxer data missing for jurisdiction " << jurisdiction
+         << " in year " << year << ".";
+    QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
+    SocialTaxerMap::const_iterator it = map.find(jurisdiction);
+    return (*it).second;
+  }
 
-	hash_map<string, TieredTaxer*, hash<string > > getSocialTaxers(unsigned int year, const string jurisdiction) {
-		stringstream msg1;
-		msg1 << "Social taxer data missing for year " << year << ".";
-		QL_REQUIRE(socialTaxers.count(year) > 0, msg1.str());
-		hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt = socialTaxers.find(year);
-		SocialTaxerMap map = (*yearIt).second;
+  bool hasSocialTaxers(unsigned int year, const std::string jurisdiction) {
+    if (socialTaxers.count(year) == 0) {
+      return false;
+    }
 
-		stringstream msg2;
-		msg1 << "Social taxer data missing for jurisdiction " << jurisdiction << " in year " << year << ".";
-		QL_REQUIRE(map.count(jurisdiction) > 0, msg2.str());
-		SocialTaxerMap::const_iterator it = map.find(jurisdiction);
-		return (*it).second;
-	}
-
-	bool hasSocialTaxers(unsigned int year, const string jurisdiction) {
-		if(socialTaxers.count(year) == 0) {
-			return false;
-		}
-
-		hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt = socialTaxers.find(year);
-		SocialTaxerMap map = (*yearIt).second;
-		return map.count(jurisdiction) > 0;
-	}
+    __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt =
+        socialTaxers.find(year);
+    SocialTaxerMap map = (*yearIt).second;
+    return map.count(jurisdiction) > 0;
+  }
 };
 }
 
-#endif /* TAXDICTIONARY_H_ */
+#endif  // WORTH_TAX_TAXDICTIONARY_H_

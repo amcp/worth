@@ -29,7 +29,7 @@ class JobPaymentEvent : public MyEvent {
     delete pmt;
   }
   std::string toString() const {
-    string result("NULL payment");
+    std::string result("NULL payment");
     if (pmt != NULL)
       result = pmt->toString();
 

@@ -94,7 +94,8 @@ class State {
     exemptionAllowanceTable[allowances][freq] = allowanceValue;
   }
 
-  void addExemptionAllowances(AllowanceFrequencyTable::const_iterator first, AllowanceFrequencyTable::const_iterator last) {
+  void addExemptionAllowances(AllowanceFrequencyTable::const_iterator first,
+                              AllowanceFrequencyTable::const_iterator last) {
     exemptionAllowanceTable.insert(first, last);
   }
 
@@ -117,7 +118,8 @@ class State {
     estimatedAllowanceTable[allowances][freq] = allowanceValue;
   }
 
-  void addEstimatedDeductions(AllowanceFrequencyTable::const_iterator first, AllowanceFrequencyTable::const_iterator last) {
+  void addEstimatedDeductions(AllowanceFrequencyTable::const_iterator first,
+                              AllowanceFrequencyTable::const_iterator last) {
     estimatedAllowanceTable.insert(first, last);
   }
 
@@ -126,7 +128,7 @@ class State {
   }
 
   const QuantLib::Money& getWithholdingAllowance(unsigned int allowances,
-                                               PayrollFrequency freq) const {
+                                                 PayrollFrequency freq) const {
     assert(withholdingAllowanceTable.count(allowances) > 0);
     AllowanceFrequencyTable::const_iterator it = withholdingAllowanceTable.find(
         allowances);
@@ -136,11 +138,12 @@ class State {
   }
 
   void addWithholdingAllowance(unsigned int allowances, PayrollFrequency freq,
-                             const QuantLib::Money& allowanceValue) {
+                               const QuantLib::Money& allowanceValue) {
     withholdingAllowanceTable[allowances][freq] = allowanceValue;
   }
 
-  void addWithholdingAllowances(AllowanceFrequencyTable::const_iterator first, AllowanceFrequencyTable::const_iterator last) {
+  void addWithholdingAllowances(AllowanceFrequencyTable::const_iterator first,
+                                AllowanceFrequencyTable::const_iterator last) {
     withholdingAllowanceTable.insert(first, last);
   }
 
@@ -172,7 +175,8 @@ class State {
     lowIncomeExemptionTable[status][freq] = mon;
   }
 
-  void addLowIncomeExemptions(StatusFrequencyTable::const_iterator begin, StatusFrequencyTable::const_iterator end) {
+  void addLowIncomeExemptions(StatusFrequencyTable::const_iterator begin,
+                              StatusFrequencyTable::const_iterator end) {
     lowIncomeExemptionTable.insert(begin, end);
   }
 
@@ -196,7 +200,8 @@ class State {
     standardDeductionTable[status][freq] = mon;
   }
 
-  void addStandardDeductions(StatusFrequencyTable::const_iterator begin, StatusFrequencyTable::const_iterator end) {
+  void addStandardDeductions(StatusFrequencyTable::const_iterator begin,
+                             StatusFrequencyTable::const_iterator end) {
     standardDeductionTable.insert(begin, end);
   }
 
@@ -211,14 +216,16 @@ class State {
     boost::tokenizer<boost::char_separator<char> > tok(*lineIt, sep);
     std::vector<std::string> frequencyStrings(tok.begin(), tok.end());
     std::vector<PayrollFrequency> frequencies(frequencyStrings.size());
-    std::transform(frequencyStrings.begin(), frequencyStrings.end(), frequencies.begin(), Worth::convertStringToPayrollFrequency);
+    std::transform(frequencyStrings.begin(), frequencyStrings.end(),
+                   frequencies.begin(), Worth::convertStringToPayrollFrequency);
 
     ++lineIt;
     AllowanceFrequencyTable result;
     while (lineIt != lines.end()) {
       boost::tokenizer<boost::char_separator<char> > tok(*lineIt, sep);
       std::vector<std::string> tokens(tok.begin(), tok.end());
-      std::for_each(tokens.begin(), tokens.end(), boost::bind(&boost::trim<std::string>, _1, std::locale() ));
+      std::for_each(tokens.begin(), tokens.end(),
+                    boost::bind(&boost::trim<std::string>, _1, std::locale()));
 
       assert(tokens.size() == frequencies.size());
       unsigned int nAllowances = boost::lexical_cast<unsigned int>(tokens[0]);
@@ -233,7 +240,8 @@ class State {
     return result;
   }
 
-  static StatusFrequencyTable generateStatusFrequencyTable(std::vector<std::string> lines, QuantLib::Currency& cur) {
+  static StatusFrequencyTable generateStatusFrequencyTable(
+      std::vector<std::string> lines, QuantLib::Currency& cur) {
     //first line is filing status names titles
     assert(lines.size() > 0);
 
@@ -248,12 +256,15 @@ class State {
     while (lineIt != lines.end()) {
       boost::tokenizer<boost::char_separator<char> > tok(*lineIt, sep);
       std::vector<std::string> tokens(tok.begin(), tok.end());
-      std::for_each(tokens.begin(), tokens.end(), boost::bind(&boost::trim<std::string>, _1, std::locale() ));
+      std::for_each(tokens.begin(), tokens.end(),
+                    boost::bind(&boost::trim<std::string>, _1, std::locale()));
 
       assert(tokens.size() == statuses.size());
-      Worth::PayrollFrequency freq = Worth::convertStringToPayrollFrequency(tokens[0]);
+      Worth::PayrollFrequency freq = Worth::convertStringToPayrollFrequency(
+          tokens[0]);
       for (size_t i = 1; i < statuses.size(); i++) {
-        result[statuses[i]][freq] = boost::lexical_cast<double>(tokens[i]) * cur;
+        result[statuses[i]][freq] = boost::lexical_cast<double>(tokens[i])
+            * cur;
       }
       ++lineIt;
     }

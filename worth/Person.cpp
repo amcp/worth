@@ -14,7 +14,8 @@
 
 #include "worth/tax/TaxDictionary.h"
 
-Person::Person(Currency cur, __gnu_cxx ::hash_map<string, int> ex)
+Person::Person(QuantLib::Currency cur,
+               __gnu_cxx ::hash_map<std::string, int> ex)
     : currency(cur),
       nominalExemptions(ex),
       mainDepository(NULL) {
@@ -25,15 +26,15 @@ Person::~Person() {
   liabilities.clear();
 }
 
-Money Person::getNetWorth() {
-  Money result(0, currency);
+QuantLib::Money Person::getNetWorth() {
+  QuantLib::Money result(0, currency);
 
-  for (vector<DepositoryAccount*>::iterator it = assets.begin();
+  for (std::vector<DepositoryAccount*>::iterator it = assets.begin();
       it != assets.end(); it++) {
     result += (*it)->getBalance();
   }
 
-  for (vector<DepositoryAccount*>::iterator it = liabilities.begin();
+  for (std::vector<DepositoryAccount*>::iterator it = liabilities.begin();
       it != liabilities.end(); it++) {
     result += (*it)->getBalance();
   }
@@ -48,32 +49,32 @@ void Person::addAsset(DepositoryAccount* asset) {
   }
 }
 
-__gnu_cxx ::hash_map<string, Money, hash<string> > Person::generateTaxReturn(
-    int year, Money deductionsInAllJurisdictions) {
-  cout << "Processing " << year
-       << " tax return. Deductions in all jurisdictions are: "
-       << deductionsInAllJurisdictions << endl;
-  hash_map<string, Money, hash<string> > result;
-  hash_map<string, Money, hash<string> > taxesPaid;
-  hash_map<string, Money, hash<string> > taxesOwed;
-  set<string> stateJurisdictions;
-  Money yearlyIncomeWages = 0 * currency;
+JobPayment::StringMoneyMap Person::generateTaxReturn(
+    int year, QuantLib::Money deductionsInAllJurisdictions) {
+  std::cout << "Processing " << year
+            << " tax return. Deductions in all jurisdictions are: "
+            << deductionsInAllJurisdictions << std::endl;
+  JobPayment::StringMoneyMap result;
+  JobPayment::StringMoneyMap taxesPaid;
+  JobPayment::StringMoneyMap taxesOwed;
+  std::set<std::string> stateJurisdictions;
+  QuantLib::Money yearlyIncomeWages = 0 * currency;
 
   if (paymentsPerCalendarYearAndMonth.count(year) == 0) {
     return result;
   }
 
-  Money taxesPaidToStateJurisdictions = 0 * currency;
-  for (hash_map<int, vector<JobPayment*> >::iterator monthIt =
+  QuantLib::Money taxesPaidToStateJurisdictions = 0 * currency;
+  for (__gnu_cxx ::hash_map<int, std::vector<JobPayment*> >::iterator monthIt =
       paymentsPerCalendarYearAndMonth[year].begin();
       monthIt != paymentsPerCalendarYearAndMonth[year].end(); monthIt++) {
-    for (vector<JobPayment*>::iterator it = (*monthIt).second.begin();
+    for (std::vector<JobPayment*>::iterator it = (*monthIt).second.begin();
         it != (*monthIt).second.end(); it++) {
       JobPayment* pmt = *it;
 
-      hash_map<string, Money, hash<string> > paymentIncomeTaxesPaid = pmt
+      JobPayment::StringMoneyMap paymentIncomeTaxesPaid = pmt
           ->getIncomeTaxesPaid();
-      for (hash_map<string, Money, hash<string> >::iterator incomeIt =
+      for (JobPayment::StringMoneyMap::iterator incomeIt =
           paymentIncomeTaxesPaid.begin();
           incomeIt != paymentIncomeTaxesPaid.end(); incomeIt++) {
         if (taxesPaid.count((*incomeIt).first) == 0) {
@@ -89,15 +90,16 @@ __gnu_cxx ::hash_map<string, Money, hash<string> > Person::generateTaxReturn(
         }
       }
 
-      hash_map<string, hash_map<string, Money, hash<string> >, hash<string> > paymentSocialTaxesPaid =
-          pmt->getSocialTaxesPaid();
-      hash_map<string, hash_map<string, Money, hash<string> >, hash<string> >::iterator socialIt;
+      __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
+          __gnu_cxx ::hash<std::string> > paymentSocialTaxesPaid = pmt
+          ->getSocialTaxesPaid();
+      __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
+          __gnu_cxx ::hash<std::string> >::iterator socialIt;
       for (socialIt = paymentSocialTaxesPaid.begin();
           socialIt != paymentSocialTaxesPaid.end(); socialIt++) {
         if ((*socialIt).first.compare("US") != 0) {
-          hash_map<string, Money, hash<string> > jurisSocialTaxMap = (*socialIt)
-              .second;
-          for (hash_map<string, Money, hash<string> >::iterator socialTypeIt =
+          JobPayment::StringMoneyMap jurisSocialTaxMap = (*socialIt).second;
+          for (JobPayment::StringMoneyMap::iterator socialTypeIt =
               jurisSocialTaxMap.begin();
               socialTypeIt != jurisSocialTaxMap.end(); socialTypeIt++) {
             // for federal income tax purposes.
@@ -110,42 +112,47 @@ __gnu_cxx ::hash_map<string, Money, hash<string> > Person::generateTaxReturn(
     }
   }
 
-  cout << "Tax paid to state jurisdictions for federal income tax purposes in "
-       << year << ": " << taxesPaidToStateJurisdictions << endl;
-  cout << "Yearly income wages were: " << yearlyIncomeWages << endl;
+  std::cout
+      << "Tax paid to state jurisdictions for federal income tax purposes in "
+      << year << ": " << taxesPaidToStateJurisdictions << std::endl;
+  std::cout << "Yearly income wages were: " << yearlyIncomeWages << std::endl;
 
   // TODO(amcp) fix use of tax dictionary
   Worth::TaxDictionary* dict = NULL;  // Worth::TaxDictionary::getInstance();
-  Money federalExemptions = dict->getExemptionAmount(year, "US");
-  Money federalTaxableIncome = yearlyIncomeWages - taxesPaidToStateJurisdictions
-      - deductionsInAllJurisdictions - federalExemptions;
-  cout << "US Taxable Income for " << year << ": " << federalTaxableIncome
-       << " (AGI was " << yearlyIncomeWages << ", exemption "
-       << federalExemptions << ")" << endl;
+  QuantLib::Money federalExemptions = dict->getExemptionAmount(year, "US");
+  QuantLib::Money federalTaxableIncome = yearlyIncomeWages
+      - taxesPaidToStateJurisdictions - deductionsInAllJurisdictions
+      - federalExemptions;
+  std::cout << "US Taxable Income for " << year << ": " << federalTaxableIncome
+            << " (AGI was " << yearlyIncomeWages << ", exemption "
+            << federalExemptions << ")" << std::endl;
   taxesOwed["US"] = dict->getIncomeTaxer(year, "US")->computeTax(
       federalTaxableIncome);
-  for (set<string>::iterator it = stateJurisdictions.begin();
-      it != stateJurisdictions.end(); it++) {
-    Money taxableIncome = yearlyIncomeWages - deductionsInAllJurisdictions
-        - dict->getExemptionAmount(year, *it);
-    cout << *it << " Taxable Income for " << year << ": " << taxableIncome
-         << " (AGI was " << yearlyIncomeWages << ", exemption "
-         << dict->getExemptionAmount(year, *it) << ")" << endl;
-    taxesOwed[*it] = dict->getIncomeTaxer(year, *it)->computeTax(taxableIncome);
+  for (std::set<std::string>::iterator itin = stateJurisdictions.begin();
+      itin != stateJurisdictions.end(); itin++) {
+    QuantLib::Money taxableIncome = yearlyIncomeWages
+        - deductionsInAllJurisdictions - dict->getExemptionAmount(year, *itin);
+    std::cout << *itin << " Taxable Income for " << year << ": "
+              << taxableIncome << " (AGI was " << yearlyIncomeWages
+              << ", exemption " << dict->getExemptionAmount(year, *itin) << ")"
+              << std::endl;
+    taxesOwed[*itin] = dict->getIncomeTaxer(year, *itin)->computeTax(
+        taxableIncome);
   }
 
   // TODO(amcp) rehash with days-in-year ratios and jurisdiction source income
-  cout << "Federal Taxable Income for " << year << ": " << yearlyIncomeWages
-       << " (AGI was " << yearlyIncomeWages << ")" << endl;
-  for (hash_map<string, Money, hash<string> >::iterator it = taxesPaid.begin();
-      it != taxesPaid.end(); it++) {
-    result[(*it).first] = (*it).second - taxesOwed[(*it).first];
-    cout << (*it).first << " taxes withheld: " << (*it).second << "; "
-         << (*it).first << " taxes actually owed: " << taxesOwed[(*it).first]
-         << endl;
+  std::cout << "Federal Taxable Income for " << year << ": "
+            << yearlyIncomeWages << " (AGI was " << yearlyIncomeWages << ")"
+            << std::endl;
+  for (JobPayment::StringMoneyMap::iterator itin = taxesPaid.begin();
+      itin != taxesPaid.end(); itin++) {
+    result[(*itin).first] = (*itin).second - taxesOwed[(*itin).first];
+    std::cout << (*itin).first << " taxes withheld: " << (*itin).second << "; "
+              << (*itin).first << " taxes actually owed: "
+              << taxesOwed[(*itin).first] << std::endl;
   }
 
-  cout << endl;
+  std::cout << std::endl;
 
   generateYearEndSummary(year);
 

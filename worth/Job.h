@@ -68,7 +68,7 @@ class JobPayment : public Payment {
   }
 
   std::string toString() const;
-  friend ostream& operator<<(ostream& os, const JobPayment& pmt);
+  friend std::ostream& operator<<(std::ostream& os, const JobPayment& pmt);
 
   inline QuantLib::Money getGrossEarnings() const {
     return grossEarnings;
@@ -79,34 +79,33 @@ class JobPayment : public Payment {
   inline QuantLib::Money getEmployerRetireContribution() const {
     return employerRetireContribution;
   }
-  inline const __gnu_cxx ::hash_map<std::string, QuantLib::Money,
-      __gnu_cxx ::hash<std::string> > getIncomeTaxesPaid() const {
+  inline const StringMoneyMap getIncomeTaxesPaid() const {
     return incomeTaxes;
   }
   inline const __gnu_cxx ::hash_map<std::string, StringMoneyMap,
       __gnu_cxx ::hash<std::string> > getSocialTaxesPaid() const {
     return socialTaxes;
   }
-  inline Money getIncomeWages() const {
+  inline QuantLib::Money getIncomeWages() const {
     return incomeWages;
   }
 };
 
 typedef __gnu_cxx ::hash_map<int,
-    __gnu_cxx ::hash_map<int, vector<JobPayment*> > > PaymentMap;
+    __gnu_cxx ::hash_map<int, std::vector<JobPayment*> > > PaymentMap;
 
 class Person {
  private:
   QuantLib::Currency currency;
-  vector<DepositoryAccount*> assets;
-  vector<DepositoryAccount*> liabilities;
+  std::vector<DepositoryAccount*> assets;
+  std::vector<DepositoryAccount*> liabilities;
   PaymentMap paymentsPerCalendarYearAndMonth;
   __gnu_cxx ::hash_map<std::string, int, __gnu_cxx ::hash<std::string> > nominalExemptions;
   DepositoryAccount* mainDepository;
   // year->month->billName->vector
   __gnu_cxx ::hash_map<int,
       __gnu_cxx ::hash_map<int,
-          __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+          __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
               __gnu_cxx ::hash<std::string> > > > billPayments;
 
  public:
@@ -144,13 +143,13 @@ class Person {
 
   void generateYearEndSummary(int year) {
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+        __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
             __gnu_cxx ::hash<std::string> > > billPaymentsInYear =
         billPayments[year];
-    __gnu_cxx ::hash_map<int, vector<JobPayment*> > jobPaymentsInYear =
+    __gnu_cxx ::hash_map<int, std::vector<JobPayment*> > jobPaymentsInYear =
         paymentsPerCalendarYearAndMonth[year];
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+        __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
             __gnu_cxx ::hash<std::string> > >::iterator monthIt;
     QuantLib::Money yearTotal = 0 * currency;
 
@@ -161,12 +160,12 @@ class Person {
       QuantLib::Money monthTotalExpense = 0 * currency;
       std::cout << "Year: " << year << "; Month: " << (*monthIt).first
                 << std::endl;
-      __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+      __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
           __gnu_cxx ::hash<std::string> >::iterator catIt;
       for (catIt = (*monthIt).second.begin(); catIt != (*monthIt).second.end();
           catIt++) {
         QuantLib::Money categoryTotal = 0 * currency;
-        vector<Payment*>::iterator pmtIt;
+        std::vector<Payment*>::iterator pmtIt;
         for (pmtIt = (*catIt).second.begin(); pmtIt != (*catIt).second.end();
             pmtIt++) {
           categoryTotal += (*pmtIt)->getAmount();
@@ -177,7 +176,7 @@ class Person {
       std::cout << std::endl;
 
       QuantLib::Money monthTotalIncome = 0 * currency;
-      for (vector<JobPayment*>::iterator jobIt = jobPaymentsInYear[(*monthIt)
+      for (std::vector<JobPayment*>::iterator jobIt = jobPaymentsInYear[(*monthIt)
           .first].begin(); jobIt != jobPaymentsInYear[(*monthIt).first].end();
           jobIt++) {
         monthTotalIncome += (*jobIt)->getAmount();
@@ -206,7 +205,7 @@ class Job {
   QuantLib::Money preIncomeTaxDeductionsPerPeriod;
   QuantLib::Money preSocialTaxDeductionsPerPeriod;
   QuantLib::Money taxableDeductionsPerPeriod;
-  __gnu_cxx ::hash_map<std::string, Rate, __gnu_cxx ::hash<std::string> > taxJurisdictions;
+  __gnu_cxx ::hash_map<std::string, QuantLib::Rate, __gnu_cxx ::hash<std::string> > taxJurisdictions;
   __gnu_cxx ::hash_map<std::string, int> exemptions;
   unsigned int effort;
   QuantLib::Period payPeriod;
@@ -402,9 +401,9 @@ class Job {
 
   inline unsigned int getPayPeriodsPerYear() const {
     unsigned int result = 1;
-    if (payPeriod.units() == Weeks) {
+    if (payPeriod.units() == QuantLib::Weeks) {
       result = 52 / payPeriod.length();
-    } else if (payPeriod.units() == Months) {
+    } else if (payPeriod.units() == QuantLib::Months) {
       result = 12 / payPeriod.length();
     }
 

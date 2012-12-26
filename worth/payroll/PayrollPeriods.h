@@ -1,5 +1,5 @@
-#ifndef PAYROLLFREQUENCY_H_
-#define PAYROLLFREQUENCY_H_
+#ifndef WORTH_PAYROLL_PAYROLLFREQUENCY_H_
+#define WORTH_PAYROLL_PAYROLLFREQUENCY_H_
 
 #include <string>
 #include <boost/algorithm/string.hpp>
@@ -44,4 +44,4 @@ static PayrollFrequency convertStringToPayrollFrequency(const std::string& in) {
 }
 }
 
-#endif
+#endif  // WORTH_PAYROLL_PAYROLLFREQUENCY_H_

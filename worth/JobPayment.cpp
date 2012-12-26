@@ -12,11 +12,11 @@ std::string JobPayment::toString() const {
   os << "Date: " << exec << "; Rate: " << hourly << "; Gross: " << grossEarnings
      << "; Income Wages: " << incomeWages << "; SS Wages: " << socialWages
      << "; Deposit: " << amount;
-  __gnu_cxx::hash_map<std::string, Money, __gnu_cxx::hash<std::string> >::const_iterator it;
+  __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >::const_iterator it;
   for (it = incomeTaxes.begin(); it != incomeTaxes.end(); it++) {
     os << "; " << (*it).first << "-SIT: " << (*it).second;
   }
-  __gnu_cxx::hash_map<string, __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >, __gnu_cxx::hash<std::string> >::const_iterator jurisIt;
+  __gnu_cxx::hash_map<std::string, __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >, __gnu_cxx::hash<std::string> >::const_iterator jurisIt;
 
   for (jurisIt = socialTaxes.begin(); jurisIt != socialTaxes.end(); jurisIt++) {
     std::string jurisdiction = (*jurisIt).first;
@@ -33,7 +33,7 @@ std::string JobPayment::toString() const {
   return os.str();
 }
 
-ostream& operator<<(std::ostream& os, const JobPayment& pmt) {
+std::ostream& operator<<(std::ostream& os, const JobPayment& pmt) {
   os << pmt.toString();
   return os;
 }

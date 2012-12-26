@@ -2,63 +2,64 @@
  * TieredTaxer.h
  *
  *  Created on: Oct 31, 2011
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef TIEREDTAXER_H_
-#define TIEREDTAXER_H_
+#ifndef WORTH_TAX_TIEREDTAXER_H_
+#define WORTH_TAX_TIEREDTAXER_H_
 
-#include <iostream>
-#include <map>
-#include <vector>
-#include <cassert>
-#include <ql/money.hpp>
-#include <ql/currency.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
+#include <ql/money.hpp>
+#include <ql/currency.hpp>
 
-using namespace std;
-using namespace QuantLib;
+#include <cassert>
+#include <map>
+#include <vector>
+#include <string>
 
 namespace Worth {
 class TieredTaxer {
-private:
-	Currency currency;
-	vector<Money> tiers;
-	vector<double> rates;
+ private:
+  QuantLib::Currency currency;
+  std::vector<QuantLib::Money> tiers;
+  std::vector<double> rates;
 
-public:
-	TieredTaxer(Currency& curr) : currency(curr) {}
-	~TieredTaxer() {
-		tiers.clear();
-		rates.clear();
-	}
+ public:
+  explicit TieredTaxer(const QuantLib::Currency& curr)
+      : currency(curr) {
+  }
+  ~TieredTaxer() {
+    tiers.clear();
+    rates.clear();
+  }
 
-	inline void addTier(const Money threshold, double rate) {
-		QL_REQUIRE(threshold.currency() == currency, "Tried to add tax tier in different currency.");
-		tiers.push_back(threshold);
-		rates.push_back(rate);
-	}
+  inline void addTier(const QuantLib::Money threshold, double rate) {
+    QL_REQUIRE(threshold.currency() == currency,
+               "Tried to add tax tier in different currency.");
+    tiers.push_back(threshold);
+    rates.push_back(rate);
+  }
 
-	Money computeTax(const Money& income) const {
-    Money total(income.currency(), 0);
+  QuantLib::Money computeTax(const QuantLib::Money& income) const {
+    QuantLib::Money total(income.currency(), 0);
 
-    if(income.currency() != this->currency) {
-      cerr << "Income " << income << " was not denominated in " << this->currency << endl;
-      return total;
-    }
+    std::stringstream msg;
+    msg << "Income " << income << " was not denominated in " << this->currency;
+    QL_REQUIRE(income.currency() != this->currency, msg.str());
 
-    Money workingRemainder = income;
+    QuantLib::Money workingRemainder = income;
 
     for (int i = tiers.size() - 1; i >= 0; i--) {
-      if(workingRemainder < tiers[i]) {
-        //go to the next one if the current tier is greater than the working remainder
+      if (workingRemainder < tiers[i]) {
+        // go to the next one if the current tier is
+        // greater than the working remainder
         continue;
       }
 
-      const Money tier = tiers.at(i);
-      Money delta = workingRemainder - tier;
-      Rate rate = rates[i];
+      const QuantLib::Money tier = tiers.at(i);
+      QuantLib::Money delta = workingRemainder - tier;
+      QuantLib::Rate rate = rates[i];
       total = total + delta * rate;
       workingRemainder = tiers[i];
     }
@@ -66,40 +67,45 @@ public:
     return total;
   }
 
-	inline double computeMarginalRate(const Money& income) const {
-	  double rate = 0.0;
-	  for (unsigned int i = 0; i < tiers.size(); i++) {
-	    if(income < tiers[i]) {
+  inline double computeMarginalRate(const QuantLib::Money& income) const {
+    double rate = 0.0;
+    for (unsigned int i = 0; i < tiers.size(); i++) {
+      if (income < tiers[i]) {
         break;
       }
-	    rate = rates[i];
-	  }
+      rate = rates[i];
+    }
 
-	  return rate;
-	}
+    return rate;
+  }
 
-	inline double computeEffectiveRate(const Money& income) {
-		return income > 0 * currency ? computeTax(income) / income : 0.0;
-	}
+  inline double computeEffectiveRate(const QuantLib::Money& income) {
+    return income > 0 * currency ? computeTax(income) / income : 0.0;
+  }
 
-	static TieredTaxer* generateTieredTaxer(const std::string& str, Currency& cur, double rateScalingFactor = 1.0) {
-	  TieredTaxer* result = new TieredTaxer(cur);
+  static TieredTaxer* generateTieredTaxer(const std::string& str,
+                                          QuantLib::Currency& cur,
+                                          double rateScalingFactor = 1.0) {
+    TieredTaxer* result = new TieredTaxer(cur);
 
-	  //get tokens in str
-	  boost::char_separator<char> sep(", ");
-	  boost::tokenizer<boost::char_separator<char> > tok(str, sep);
+    // get tokens in str
+    boost::char_separator<char> sep(", ");
+    boost::tokenizer<boost::char_separator<char> > tok(str, sep);
 
-	  for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg) {
-	    std::string moneyString = *beg;
-	    assert(beg != tok.end());
-	    ++beg;
-	    std::string rateString = *beg;
-	    result->addTier(boost::lexical_cast<double>(moneyString) * cur, boost::lexical_cast<double>(rateString) * rateScalingFactor);
-	  }
+    for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok
+        .begin(); beg != tok.end(); ++beg) {
+      std::string moneyString = *beg;
+      assert(beg != tok.end());
+      ++beg;
+      std::string rateString = *beg;
+      result->addTier(
+          boost::lexical_cast<double>(moneyString) * cur,
+          boost::lexical_cast<double>(rateString) * rateScalingFactor);
+    }
 
-	  return result;
-	}
+    return result;
+  }
 };
 }
 
-#endif /* TIEREDTAXER_H_ */
+#endif  // WORTH_TAX_TIEREDTAXER_H_

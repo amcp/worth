@@ -13,7 +13,7 @@ void JobPaymentEvent::apply(Sequencer* sequencer) {
     this->job->getEmployeeRetirementContributionAccount()->creditAccount(
         pmt->getEmployeeRetireContribution());
     sequencer->addEvent(new JobPaymentEvent(job->getCurrentPaymentDate(), job));
-    cout << *pmt << endl;
+    std::cout << *pmt << std::endl;
     job->getUser()->addPayment(pmt);
   }
 }
