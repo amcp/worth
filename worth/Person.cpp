@@ -2,17 +2,22 @@
  * Person.cpp
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#include "Job.h"
-#include "tax/TaxDictionary.h"
+#include "worth/Job.h"
 
-Person::Person(Currency cur, hash_map<string, int> ex)
+#include <vector>
+#include <set>
+#include <string>
+#include <ext/hash_map>
+
+#include "worth/tax/TaxDictionary.h"
+
+Person::Person(Currency cur, __gnu_cxx ::hash_map<string, int> ex)
     : currency(cur),
       nominalExemptions(ex),
       mainDepository(NULL) {
-
 }
 
 Person::~Person() {
@@ -43,7 +48,7 @@ void Person::addAsset(DepositoryAccount* asset) {
   }
 }
 
-hash_map<string, Money, hash<string> > Person::generateTaxReturn(
+__gnu_cxx ::hash_map<string, Money, hash<string> > Person::generateTaxReturn(
     int year, Money deductionsInAllJurisdictions) {
   cout << "Processing " << year
        << " tax return. Deductions in all jurisdictions are: "
@@ -95,7 +100,8 @@ hash_map<string, Money, hash<string> > Person::generateTaxReturn(
           for (hash_map<string, Money, hash<string> >::iterator socialTypeIt =
               jurisSocialTaxMap.begin();
               socialTypeIt != jurisSocialTaxMap.end(); socialTypeIt++) {
-            taxesPaidToStateJurisdictions += (*socialTypeIt).second;  //for federal income tax purposes.
+            // for federal income tax purposes.
+            taxesPaidToStateJurisdictions += (*socialTypeIt).second;
           }
         }
       }
@@ -108,8 +114,8 @@ hash_map<string, Money, hash<string> > Person::generateTaxReturn(
        << year << ": " << taxesPaidToStateJurisdictions << endl;
   cout << "Yearly income wages were: " << yearlyIncomeWages << endl;
 
-  //TODO
-  Worth::TaxDictionary* dict = NULL;//Worth::TaxDictionary::getInstance();
+  // TODO(amcp) fix use of tax dictionary
+  Worth::TaxDictionary* dict = NULL;  // Worth::TaxDictionary::getInstance();
   Money federalExemptions = dict->getExemptionAmount(year, "US");
   Money federalTaxableIncome = yearlyIncomeWages - taxesPaidToStateJurisdictions
       - deductionsInAllJurisdictions - federalExemptions;
@@ -128,7 +134,7 @@ hash_map<string, Money, hash<string> > Person::generateTaxReturn(
     taxesOwed[*it] = dict->getIncomeTaxer(year, *it)->computeTax(taxableIncome);
   }
 
-  //TODO rehash with days-in-year ratios and jurisdiction source income
+  // TODO(amcp) rehash with days-in-year ratios and jurisdiction source income
   cout << "Federal Taxable Income for " << year << ": " << yearlyIncomeWages
        << " (AGI was " << yearlyIncomeWages << ")" << endl;
   for (hash_map<string, Money, hash<string> >::iterator it = taxesPaid.begin();

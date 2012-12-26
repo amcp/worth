@@ -1,55 +1,55 @@
 /*
- * Payment.hh
+ * Payment.h
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *      Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef PAYMENT_H_
-#define PAYMENT_H_
+#ifndef WORTH_PAYMENT_H_
+#define WORTH_PAYMENT_H_
 
 #include <ql/time/date.hpp>
 #include <ql/money.hpp>
 
-using namespace QuantLib;
-
 class Payment {
  protected:
-  Date exec;
-  Money amount;
+  QuantLib::Date exec;
+  QuantLib::Money amount;
   Payment() {
   }
+
  public:
-  Payment(Date d, Money notional)
+  Payment(QuantLib::Date d, QuantLib::Money notional)
       : exec(d),
         amount(notional) {
   }
   ~Payment() {
   }
-  inline Money getAmount() const {
+  inline QuantLib::Money getAmount() const {
     return amount;
   }
-  inline Date getDate() const {
+  inline QuantLib::Date getDate() const {
     return exec;
   }
 };
 
 class PartiallyDeductiblePayment : public Payment {
  protected:
-  Money deductiblePortion;
+  QuantLib::Money deductiblePortion;
   PartiallyDeductiblePayment()
       : Payment() {
   }
+
  public:
-  PartiallyDeductiblePayment(Date d, Money notional, Money deduct)
+  PartiallyDeductiblePayment(QuantLib::Date d, QuantLib::Money notional,
+                             QuantLib::Money deduct)
       : Payment(d, notional),
         deductiblePortion(deduct) {
-
   }
 
-  inline Money getDeductiblePortion() const {
+  inline QuantLib::Money getDeductiblePortion() const {
     return deductiblePortion;
   }
 };
 
-#endif /* PAYMENT_H_ */
+#endif  // WORTH_PAYMENT_H_

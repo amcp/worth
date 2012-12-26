@@ -1,48 +1,53 @@
-#ifndef MYEVENT_H_
-#define MYEVENT_H_
+/**
+ *  Copyright 2012 Alexander Patrikalakis
+ */
+
+#ifndef WORTH_MYEVENT_H_
+#define WORTH_MYEVENT_H_
+
+#include <ql/time/date.hpp>
 
 #include <queue>
 #include <vector>
-#include <ql/time/date.hpp>
+#include <string>
 #include <iostream>
-#include "Utility.h"
-
-using namespace std;
+#include "worth/Utility.h"
 
 class Sequencer;
 
 class MyEvent {
+ public:
+  struct comparator;
+  typedef std::vector<MyEvent*> EventVector;
+  typedef std::priority_queue<MyEvent*, EventVector, comparator> EventQueue;
  protected:
   MyEvent();
   QuantLib::Date exec;
  public:
   virtual ~MyEvent();
-  MyEvent(QuantLib::Date d)
+  explicit MyEvent(QuantLib::Date d)
       : exec(d) {
   }
   QuantLib::Date getExecutionDate() {
     return exec;
   }
-  virtual void apply(Sequencer& sequencer) = 0;
-  virtual string toString() const = 0;
+  virtual void apply(Sequencer* sequencer) = 0;
+  virtual std::string toString() const = 0;
 
   struct comparator {
-    bool operator ()(MyEvent* e1, MyEvent* e2) {
+    bool operator()(MyEvent* e1, MyEvent* e2) {
       return e1->exec > e2->exec;
     }
   };
 };
 
-typedef priority_queue<MyEvent*, vector<MyEvent*>, MyEvent::comparator> EventQueue;
-typedef vector<MyEvent*> EventVector;
-
 class Sequencer {
  private:
   QuantLib::Date begin;
   QuantLib::Date end;
-  EventQueue events;
-  EventVector unexecutedEvents;
-  EventVector executedEvents;
+  MyEvent::EventQueue events;
+  MyEvent::EventVector unexecutedEvents;
+  MyEvent::EventVector executedEvents;
   QuantLib::Date currentEventDate;
 
  public:
@@ -57,12 +62,12 @@ class Sequencer {
       events.pop();
     }
 
-    for (EventVector::iterator it = executedEvents.begin();
+    for (MyEvent::EventVector::iterator it = executedEvents.begin();
         it != executedEvents.end(); it++) {
       delete *it;
     }
 
-    for (EventVector::iterator it = unexecutedEvents.begin();
+    for (MyEvent::EventVector::iterator it = unexecutedEvents.begin();
         it != unexecutedEvents.end(); it++) {
       delete *it;
     }
@@ -77,10 +82,10 @@ class Sequencer {
       currentEventDate = first->getExecutionDate();
       events.pop();
       if (!(begin > currentEventDate || currentEventDate > end)) {
-        first->apply(*this);
+        first->apply(this);
         executedEvents.push_back(first);
       } else {
-        //cout << "Not executing event: " << first->toString() << endl;
+        // cout << "Not executing event: " << first->toString() << endl;
         unexecutedEvents.push_back(first);
       }
     }
@@ -93,8 +98,8 @@ class Sequencer {
   }
 
   void dumpEvents() {
-    cout << "Dumping events in queue." << endl;
+    std::cout << "Dumping events in queue." << std::endl;
   }
 };
 
-#endif /* MYEVENT_H_ */
+#endif  // WORTH_MYEVENT_H_

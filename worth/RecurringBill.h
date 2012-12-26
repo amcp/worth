@@ -2,37 +2,35 @@
  * RecurringBill.h
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef RECURRINGBILL_H_
-#define RECURRINGBILL_H_
+#ifndef WORTH_RECURRINGBILL_H_
+#define WORTH_RECURRINGBILL_H_
 
-#include <string>
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 #include <ql/money.hpp>
+#include <string>
 
-#include "Utility.h"
-#include "Payment.h"
-#include "Job.h"
-
-using namespace std;
-using namespace QuantLib;
+#include "worth/Utility.h"
+#include "worth/Payment.h"
+#include "worth/Job.h"
 
 class RecurringBill {
  protected:
-  string name;
-  Money amount;
-  Schedule schedule;
-  Schedule::const_iterator paymentIterator;
+  std::string name;
+  QuantLib::Money amount;
+  QuantLib::Schedule schedule;
+  QuantLib::Schedule::const_iterator paymentIterator;
   bool active;
   DepositoryAccount* payingAccount;
   Person& user;
 
  public:
-  RecurringBill(string nameIn, Money amountIn, Period tenor, Date startDate,
-                Date endDate, Calendar calendar, DepositoryAccount* payer,
+  RecurringBill(std::string nameIn, Money amountIn, QuantLib::Period tenor,
+                QuantLib::Date startDate, QuantLib::Date endDate,
+                QuantLib::Calendar calendar, DepositoryAccount* payer,
                 Person& usr)
       : name(nameIn),
         amount(amountIn),
@@ -46,11 +44,11 @@ class RecurringBill {
     paymentIterator = schedule.begin();
   }
 
-  inline const Schedule& getSchedule() const {
+  inline const QuantLib::Schedule& getSchedule() const {
     return schedule;
   }
 
-  inline const string& getName() const {
+  inline const std::string& getName() const {
     return name;
   }
 
@@ -58,10 +56,10 @@ class RecurringBill {
     return active;
   }
 
-  inline Money getAmount() const {
+  inline QuantLib::Money getAmount() const {
     return amount;
   }
-  inline void setAmount(Money m) {
+  inline void setAmount(QuantLib::Money m) {
     amount = m;
   }
 
@@ -74,7 +72,7 @@ class RecurringBill {
   inline bool hasMoreBillPayments() const {
     return paymentIterator != schedule.end();
   }
-  inline Date getCurrentPaymentDate() const {
+  inline QuantLib::Date getCurrentPaymentDate() const {
     return *paymentIterator;
   }
 
@@ -87,4 +85,4 @@ class RecurringBill {
   }
 };
 
-#endif /* RECURRINGBILL_H_ */
+#endif  // WORTH_RECURRINGBILL_H_

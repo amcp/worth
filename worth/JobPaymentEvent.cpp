@@ -1,23 +1,20 @@
-/*
- * JobPaymentEvent.cpp
- *
- *  Created on: 22 Ãëô 2012
- *      Author: amcp
+/**
+ * Copyright 2012 Alexander Patrikalakis
  */
 
-#include "JobPaymentEvent.h"
+#include "worth/JobPaymentEvent.h"
 
-void JobPaymentEvent::apply(Sequencer& sequencer) {
-  if (job.hasMorePayments()) {
-    pmt = job.getNextPayment();
-    this->job.getDDAccount()->creditAccount(pmt->getAmount());
-    this->job.getEmployerRetirementContributionAccount()->creditAccount(
+void JobPaymentEvent::apply(Sequencer* sequencer) {
+  if (job->hasMorePayments()) {
+    pmt = job->getNextPayment();
+    this->job->getDDAccount()->creditAccount(pmt->getAmount());
+    this->job->getEmployerRetirementContributionAccount()->creditAccount(
         pmt->getEmployerRetireContribution());
-    this->job.getEmployeeRetirementContributionAccount()->creditAccount(
+    this->job->getEmployeeRetirementContributionAccount()->creditAccount(
         pmt->getEmployeeRetireContribution());
-    sequencer.addEvent(new JobPaymentEvent(job.getCurrentPaymentDate(), job));
+    sequencer->addEvent(new JobPaymentEvent(job->getCurrentPaymentDate(), job));
     cout << *pmt << endl;
-    job.getUser()->addPayment(pmt);
+    job->getUser()->addPayment(pmt);
   }
 }
 

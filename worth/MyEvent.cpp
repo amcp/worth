@@ -2,16 +2,16 @@
  * MyEvent.cpp
  *
  *  Created on: 19 Ãכפ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#include "MyEvent.h"
+#include "worth/MyEvent.h"
 
 MyEvent::MyEvent() {
   exec = QuantLib::Date::todaysDate();
 }
 
 MyEvent::~MyEvent() {
-  // TODO Auto-generated destructor stub
+  // TODO(amcp) Auto-generated destructor stub
 }
 

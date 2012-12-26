@@ -2,21 +2,21 @@
  * DepositoryAccount.h
  *
  *  Created on: Nov 1, 2011
- *      Author: amcp
+ *   Copyright  2012 Alexander Patrikalakis
  */
 
-#ifndef DEPOSITORYACCOUNT_H_
-#define DEPOSITORYACCOUNT_H_
+#ifndef WORTH_DEPOSITORYACCOUNT_H_
+#define WORTH_DEPOSITORYACCOUNT_H_
 
-#include <vector>
 #include <ql/currency.hpp>
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 
-#include "Account.h"
+#include <vector>
+#include <string>
+#include <sstream>
 
-using namespace std;
-using namespace QuantLib;
+#include "worth/Account.h"
 
 enum DepositType {
   CASH,
@@ -28,9 +28,11 @@ class DepositoryAccount : public Account {
  private:
   DepositType type;
   unsigned int anniversary;
+
  public:
-  DepositoryAccount(const Currency& currency, unsigned int dayOfMonth,
-                    DepositType typeIn, Calendar exchCal, string nameIn)
+  DepositoryAccount(const QuantLib::Currency& currency, unsigned int dayOfMonth,
+                    DepositType typeIn, QuantLib::Calendar exchCal,
+                    std::string nameIn)
       : Account(0 * currency, 0, exchCal, nameIn),
         type(typeIn),
         anniversary(dayOfMonth) {
@@ -42,14 +44,15 @@ class DepositoryAccount : public Account {
   inline DepositType getType() {
     return type;
   }
-  inline void setRate(Rate newRate) {
+  inline void setRate(QuantLib::Rate newRate) {
     this->rate = newRate;
   }
 
-  Schedule generateCouponSchedule(const Date& start, const Date& end);
+  QuantLib::Schedule generateCouponSchedule(const QuantLib::Date& start,
+                                            const QuantLib::Date& end);
 
-  string toString() {
-    stringstream msg;
+  std::string toString() {
+    std::stringstream msg;
     msg << "Type: ";
     if (type == CASH) {
       msg << "CASH";
@@ -63,4 +66,4 @@ class DepositoryAccount : public Account {
   }
 };
 
-#endif /* DEPOSITORYACCOUNT_H_ */
+#endif  // WORTH_DEPOSITORYACCOUNT_H_

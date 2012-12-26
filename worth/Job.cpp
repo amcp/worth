@@ -1,3 +1,7 @@
+/*
+ *   Copyright  2012 Alexander Patrikalakis
+ */
+
 #include "Job.h"
 #include <cmath>
 #include <ql/cashflows/simplecashflow.hpp>

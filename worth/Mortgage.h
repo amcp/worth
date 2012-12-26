@@ -2,19 +2,24 @@
  * Mortgage.h
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *  Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef MORTGAGE_H_
-#define MORTGAGE_H_
+#ifndef WORTH_MORTGAGE_H_
+#define WORTH_MORTGAGE_H_
 
-#include "RecurringBill.h"
-#include "Account.h"
+#include <string>
+
+#include "worth/RecurringBill.h"
+#include "worth/Account.h"
+
+
 
 class Mortgage : public RecurringBill {
  protected:
   Money closingCosts;
   Account balance;
+
  public:
   Mortgage(string nameIn, Money amountIn, Date startDate, Date endDate,
            Calendar calendar, DepositoryAccount* payer, Money closing,
@@ -38,4 +43,4 @@ class Mortgage : public RecurringBill {
   }
 };
 
-#endif /* MORTGAGE_H_ */
+#endif  // WORTH_MORTGAGE_H_

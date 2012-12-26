@@ -2,20 +2,20 @@
  * DepositoryAccount.cpp
  *
  *  Created on: Nov 1, 2011
- *      Author: amcp
+ *   Copyright  2012 Alexander Patrikalakis
  */
 
-#include "ql/time/dategenerationrule.hpp"
-#include "DepositoryAccount.h"
+#include <ql/time/dategenerationrule.hpp>
+#include <ql/time/schedule.hpp>
+#include "worth/DepositoryAccount.h"
 
-using namespace QuantLib;
-
-Schedule DepositoryAccount::generateCouponSchedule(const Date& start,
-                                                   const Date& end) {
-  Period frequency(1, Months);
-  Schedule sched(start, end, frequency, this->exchangeCalendar,
-                 ModifiedFollowing, ModifiedPreceding, DateGeneration::Forward,
-                 false);
+QuantLib::Schedule DepositoryAccount::generateCouponSchedule(
+    const QuantLib::Date& start, const QuantLib::Date& end) {
+  QuantLib::Period frequency(1, QuantLib::Months);
+  QuantLib::Schedule sched(start, end, frequency, this->exchangeCalendar,
+                           QuantLib::ModifiedFollowing,
+                           QuantLib::ModifiedPreceding,
+                           QuantLib::DateGeneration::Forward, false);
 
   return sched;
 }

@@ -2,11 +2,11 @@
  * PersonEvent.h
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef PERSONEVENT_H_
-#define PERSONEVENT_H_
+#ifndef WORTH_PERSONEVENT_H_
+#define WORTH_PERSONEVENT_H_
 
 #include <iostream>
 #include <istream>
@@ -17,16 +17,13 @@
 #include "MyEvent.h"
 #include "Job.h"
 
-using namespace std;
-using namespace QuantLib;
-
 class PersonEvent : public MyEvent {
  private:
   Person& person;
-  string command;
-  vector<string> tokens;
+  std::string command;
+  std::vector<std::string> tokens;
  public:
-  PersonEvent(Person& j, string str, Date exec)
+  PersonEvent(Person& j, std::string str, Date exec)
       : MyEvent(exec),
         person(j),
         command(str) {
@@ -40,7 +37,7 @@ class PersonEvent : public MyEvent {
     tokens.clear();
   }
 
-  string toString() const {
+  std::string toString() const {
     return command;
   }
 
@@ -68,10 +65,10 @@ class PersonEvent : public MyEvent {
         uniformDeduction = 0;
       }
 
-      hash_map<string, Money, hash<string> > returnsByJuris = person
+      hash_map<std::string, QuantLib::Money, hash<std::string> > returnsByJuris = person
           .generateTaxReturn(year, uniformDeduction * person.getCurrency());
 
-      for (hash_map<string, Money, hash<string> >::iterator it = returnsByJuris
+      for (hash_map<std::string, QuantLib::Money, hash<std::string> >::iterator it = returnsByJuris
           .begin(); it != returnsByJuris.end(); it++) {
         cout << "Date: " << exec << "; Depositing " << (*it).first
              << " return of " << (*it).second << endl;
@@ -84,4 +81,4 @@ class PersonEvent : public MyEvent {
   }
 };
 
-#endif /* PERSONEVENT_H_ */
+#endif /* WORTH_PERSONEVENT_H_ */

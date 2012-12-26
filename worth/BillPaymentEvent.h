@@ -2,37 +2,33 @@
  * RecurringBill.h
  *
  *  Created on: 23 √ÎÙ 2012
- *      Author: amcp
+ *   Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef BILLPAYMENTEVENT_H_
-#define BILLPAYMENTEVENT_H_
+#ifndef WORTH_BILLPAYMENTEVENT_H_
+#define WORTH_BILLPAYMENTEVENT_H_
 
-#include <iostream>
-#include <istream>
-#include <sstream>
+#include <boost/tokenizer.hpp>
 #include <string>
 #include <vector>
-#include "MyEvent.h"
-#include "RecurringBill.h"
-
-using namespace std;
-using namespace QuantLib;
+#include <algorithm>
+#include "worth/MyEvent.h"
+#include "worth/RecurringBill.h"
 
 class BillPaymentEvent : public MyEvent {
  private:
-  RecurringBill& bill;
-  string command;
-  vector<string> tokens;
+  RecurringBill* bill;
+  std::string command;
+  std::vector<std::string> tokens;
+
  public:
-  BillPaymentEvent(RecurringBill& billIn, string str, Date exec)
+  BillPaymentEvent(RecurringBill* billIn, std::string str, QuantLib::Date exec)
       : MyEvent(exec),
         bill(billIn),
         command(str) {
-    std::stringstream strstr(str);
-    std::istream_iterator<std::string> it(strstr);
-    std::istream_iterator<std::string> end;
-    tokens.insert(tokens.begin(), it, end);
+    boost::char_separator<char> sep(", ");
+    boost::tokenizer<boost::char_separator<char> > tok(str, sep);
+    std::copy(tok.begin, tok.end, tokens.begin());
   }
 
   ~BillPaymentEvent() {
@@ -43,15 +39,15 @@ class BillPaymentEvent : public MyEvent {
     return command;
   }
 
-  void apply(Sequencer& sequencer) {
-    if (bill.hasMoreBillPayments()) {
-      Payment* payment = bill.getNextBillPayment();
-      bill.getPayingAccount()->debitAccount(payment->getAmount());
-      sequencer.addEvent(
-          new BillPaymentEvent(bill, "PAYMENT", bill.getCurrentPaymentDate()));
-      bill.getUser().addBillPayment(bill.getName(), payment);
+  void apply(Sequencer* sequencer) {
+    if (bill->hasMoreBillPayments()) {
+      Payment* payment = bill->getNextBillPayment();
+      bill->getPayingAccount()->debitAccount(payment->getAmount());
+      sequencer->addEvent(
+          new BillPaymentEvent(bill, "PAYMENT", bill->getCurrentPaymentDate()));
+      bill->getUser().addBillPayment(bill->getName(), payment);
     }
   }
 };
 
-#endif /* BILLPAYMENTEVENT_H_ */
+#endif  // WORTH_BILLPAYMENTEVENT_H_

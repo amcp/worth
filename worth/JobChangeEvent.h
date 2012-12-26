@@ -1,5 +1,8 @@
-#ifndef JOBCHANGEEVENT_H_
-#define JOBCHANGEEVENT_H_
+/**
+ * Copyright 2012 Alexander Patrikalakis
+ */
+#ifndef WORTH_JOBCHANGEEVENT_H_
+#define WORTH_JOBCHANGEEVENT_H_
 
 #include <iostream>
 #include <istream>
@@ -7,9 +10,9 @@
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
-#include "MyEvent.h"
-#include "Job.h"
-#include "JobPaymentEvent.h"
+#include "worth/MyEvent.h"
+#include "worth/Job.h"
+#include "worth/JobPaymentEvent.h"
 
 using namespace std;
 using namespace QuantLib;
@@ -127,4 +130,4 @@ class JobChangeEvent : public MyEvent {
   }
 };
 
-#endif /* JOBCHANGEEVENT_H_ */
+#endif /* WORTH_JOBCHANGEEVENT_H_ */

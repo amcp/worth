@@ -2,23 +2,25 @@
  * JobPaymentEvent.h
  *
  *  Created on: 22 √ÎÙ 2012
- *      Author: amcp
+ *  Copyright 2012 Alexander Patrikalakis
  */
 
-#ifndef JOBPAYMENTEVENT_H_
-#define JOBPAYMENTEVENT_H_
+#ifndef WORTH_JOBPAYMENTEVENT_H_
+#define WORTH_JOBPAYMENTEVENT_H_
+
+#include <ql/time/date.hpp>
 
 #include <string>
-#include <ql/time/date.hpp>
-#include "MyEvent.h"
-#include "Job.h"
+
+#include "worth/MyEvent.h"
+#include "worth/Job.h"
 
 class JobPaymentEvent : public MyEvent {
  private:
-  Job& job;
+  Job* job;
   JobPayment* pmt;
  public:
-  JobPaymentEvent(QuantLib::Date d, Job& j)
+  JobPaymentEvent(QuantLib::Date d, Job* j)
       : MyEvent(d),
         job(j),
         pmt(NULL) {
@@ -34,7 +36,7 @@ class JobPaymentEvent : public MyEvent {
     return result;
   }
 
-  void apply(Sequencer& sequencer);
+  void apply(Sequencer* sequencer);
 };
 
-#endif /* JOBPAYMENTEVENT_H_ */
+#endif  // WORTH_JOBPAYMENTEVENT_H_

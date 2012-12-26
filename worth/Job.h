@@ -1,25 +1,33 @@
-// Copyright 2012 Alexander Patrikalakis
-#ifndef JOB_H_
-#define JOB_H_
+/**
+ *  Copyright  2012 Alexander Patrikalakis
+ */
 
-#include <string>
-#include <vector>
-#include <iostream>
-#include <ext/hash_map>
+#ifndef WORTH_JOB_H_
+#define WORTH_JOB_H_
+
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 #include <ql/money.hpp>
 #include <ql/currencies/america.hpp>
 
-#include "DepositoryAccount.h"
-#include "Utility.h"
-#include "tax/TieredTaxer.h"
-#include "MyEvent.h"
-#include "Payment.h"
+#include <string>
+#include <vector>
+#include <iostream>
+#include <ext/hash_map>
+
+#include "worth/DepositoryAccount.h"
+#include "worth/Utility.h"
+#include "worth/tax/TieredTaxer.h"
+#include "worth/MyEvent.h"
+#include "worth/Payment.h"
 
 class Job;
 
 class JobPayment : public Payment {
+ public:
+  typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
+      __gnu_cxx ::hash<std::string> > StringMoneyMap;
+
  private:
   JobPayment()
       : Payment() {
@@ -27,9 +35,8 @@ class JobPayment : public Payment {
   QuantLib::Money grossEarnings;
   QuantLib::Money incomeWages;
   QuantLib::Money socialWages;
-  __gnu_cxx ::hash_map<std::string, Money, __gnu_cxx ::hash<std::string> > incomeTaxes;
-  __gnu_cxx ::hash_map<std::string,
-      __gnu_cxx ::hash_map<std::string, QuantLib::Money, __gnu_cxx ::hash<std::string> >,
+  StringMoneyMap incomeTaxes;
+  __gnu_cxx ::hash_map<std::string, StringMoneyMap,
       __gnu_cxx ::hash<std::string> > socialTaxes;
   QuantLib::Money hourly;
   QuantLib::Money employeeRetireContribution;
@@ -42,9 +49,8 @@ class JobPayment : public Payment {
       QuantLib::Money gross,
       QuantLib::Money federal,
       QuantLib::Money SS,
-      __gnu_cxx ::hash_map<std::string, QuantLib::Money, __gnu_cxx ::hash<std::string> > SIT,
-      __gnu_cxx ::hash_map<std::string,
-          __gnu_cxx ::hash_map<std::string, QuantLib::Money, __gnu_cxx ::hash<std::string> >,
+      StringMoneyMap SIT,
+      __gnu_cxx ::hash_map<std::string, StringMoneyMap,
           __gnu_cxx ::hash<std::string> > SOCT,
       QuantLib::Money hourlyRate, QuantLib::Money eeRetire,
       QuantLib::Money employerRetire)
@@ -77,8 +83,7 @@ class JobPayment : public Payment {
       __gnu_cxx ::hash<std::string> > getIncomeTaxesPaid() const {
     return incomeTaxes;
   }
-  inline const __gnu_cxx ::hash_map<std::string,
-      __gnu_cxx ::hash_map<std::string, QuantLib::Money, __gnu_cxx ::hash<std::string> >,
+  inline const __gnu_cxx ::hash_map<std::string, StringMoneyMap,
       __gnu_cxx ::hash<std::string> > getSocialTaxesPaid() const {
     return socialTaxes;
   }
@@ -106,7 +111,8 @@ class Person {
 
  public:
   explicit Person(QuantLib::Currency cur)
-      : currency(cur) {
+      : currency(cur),
+        mainDepository(NULL) {
   }
 
   Person(QuantLib::Currency cur, __gnu_cxx ::hash_map<std::string, int> ex);
@@ -138,12 +144,14 @@ class Person {
 
   void generateYearEndSummary(int year) {
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, vector<Payment*>, __gnu_cxx ::hash<std::string> > > billPaymentsInYear =
+        __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+            __gnu_cxx ::hash<std::string> > > billPaymentsInYear =
         billPayments[year];
     __gnu_cxx ::hash_map<int, vector<JobPayment*> > jobPaymentsInYear =
         paymentsPerCalendarYearAndMonth[year];
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, vector<Payment*>, __gnu_cxx ::hash<std::string> > >::iterator monthIt;
+        __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+            __gnu_cxx ::hash<std::string> > >::iterator monthIt;
     QuantLib::Money yearTotal = 0 * currency;
 
     QuantLib::Money cumulativeCashFlow = 0 * currency;
@@ -151,8 +159,10 @@ class Person {
         monthIt != billPaymentsInYear.end(); monthIt++) {
       QuantLib::Money monthCashFlow = 0 * currency;
       QuantLib::Money monthTotalExpense = 0 * currency;
-      std::cout << "Year: " << year << "; Month: " << (*monthIt).first << std::endl;
-      __gnu_cxx ::hash_map<std::string, vector<Payment*>, __gnu_cxx ::hash<std::string> >::iterator catIt;
+      std::cout << "Year: " << year << "; Month: " << (*monthIt).first
+                << std::endl;
+      __gnu_cxx ::hash_map<std::string, vector<Payment*>,
+          __gnu_cxx ::hash<std::string> >::iterator catIt;
       for (catIt = (*monthIt).second.begin(); catIt != (*monthIt).second.end();
           catIt++) {
         QuantLib::Money categoryTotal = 0 * currency;
@@ -176,13 +186,15 @@ class Person {
       monthCashFlow = monthTotalIncome - monthTotalExpense;
       cumulativeCashFlow += monthCashFlow;
       std::cout << "Year: " << year << "; Month: " << (*monthIt).first
-           << "; Total expenses: " << monthTotalExpense << "; Total income: "
-           << monthTotalIncome << "; Net cash flow: " << monthCashFlow
-           << "; YTD cash flow: " << cumulativeCashFlow << std::endl;
+                << "; Total expenses: " << monthTotalExpense
+                << "; Total income: " << monthTotalIncome << "; Net cash flow: "
+                << monthCashFlow << "; YTD cash flow: " << cumulativeCashFlow
+                << std::endl;
       yearTotal += monthTotalExpense;
     }
   }
-  __gnu_cxx ::hash_map<std::string, QuantLib::Money, __gnu_cxx ::hash<std::string> > generateTaxReturn(
+  __gnu_cxx ::hash_map<std::string, QuantLib::Money,
+      __gnu_cxx ::hash<std::string> > generateTaxReturn(
       int year, QuantLib::Money deductionsInAllJurisdictions);
 };
 
@@ -213,7 +225,13 @@ class Job {
   QuantLib::Schedule paySchedule;
   QuantLib::Schedule::const_iterator paymentIterator;
 
-  Job() {
+  Job()
+      : effort(2080),
+        accumulatedVacationHours(0),
+        vacationHoursTakenInPayPeriod(0),
+        employerRetirementGiftRatio(0),
+        employerRetirementMatchMaximum(0),
+        employerRetirementMatchRatio(0) {
     user = NULL;
     ddAccount = NULL;
     employerRetirementContributionAccount = NULL;
@@ -228,10 +246,12 @@ class Job {
       QuantLib::Money preIncomeTaxDeductions,
       QuantLib::Money preSocialTaxDeductions,
       QuantLib::Money taxableDeductions,
-      __gnu_cxx ::hash_map<std::string, QuantLib::Rate, __gnu_cxx ::hash<std::string> > taxingJurisdictions,
-      __gnu_cxx ::hash_map<std::string, int> ex, int hours, QuantLib::Period freq,
-      QuantLib::Date startDate, QuantLib::Date endDate, int accumVacHrs,
-      DepositoryAccount* dd, DepositoryAccount* employerContributionAccount,
+      __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
+          __gnu_cxx ::hash<std::string> > taxingJurisdictions,
+      __gnu_cxx ::hash_map<std::string, int> ex, int hours,
+      QuantLib::Period freq, QuantLib::Date startDate, QuantLib::Date endDate,
+      int accumVacHrs, DepositoryAccount* dd,
+      DepositoryAccount* employerContributionAccount,
       DepositoryAccount* employeeContributionAccount, double erReturementGift,
       double erRetirementMatchMaximum, double erRetirementMatchRatio);
 
@@ -406,7 +426,8 @@ class Job {
 
   // immutable factory methods
   inline void setTaxingJurisdictions(
-      __gnu_cxx ::hash_map<std::string, QuantLib::Rate, __gnu_cxx ::hash<std::string> > juris) {
+      __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
+          __gnu_cxx ::hash<std::string> > juris) {
     this->taxJurisdictions = juris;
   }
 
@@ -429,4 +450,4 @@ class Job {
   }
 };
 
-#endif /* JOB_H_ */
+#endif  // WORTH_JOB_H_

@@ -2,18 +2,16 @@
  * Account.h
  *
  *  Created on: Nov 1, 2011
- *      Author: amcp
+ *   Copyright  2012 Alexander Patrikalakis
  */
 
-#ifndef ACCOUNT_H_
-#define ACCOUNT_H_
+#ifndef WORTH_ACCOUNT_H_
+#define WORTH_ACCOUNT_H_
 
-#include <iostream>
 #include <ql/money.hpp>
 #include <ql/time/calendar.hpp>
-
-using namespace std;
-using namespace QuantLib;
+#include <string>
+#include <sstream>
 
 class Account {
  private:
@@ -26,11 +24,11 @@ class Account {
   QuantLib::Money balance;
   QuantLib::Rate rate;
   QuantLib::Calendar exchangeCalendar;
-  string name;
+  std::string name;
 
  public:
-  Account(const Money& initialBalance, Rate initialRate,
-          Calendar effectiveCalendar, string nameIn)
+  Account(const QuantLib::Money& initialBalance, QuantLib::Rate initialRate,
+          QuantLib::Calendar effectiveCalendar, std::string nameIn)
       : balance(initialBalance),
         rate(initialRate),
         exchangeCalendar(effectiveCalendar),
@@ -39,47 +37,47 @@ class Account {
     Account::incrementIdSequence();
   }
 
-  inline Money getBalance() {
+  inline QuantLib::Money getBalance() {
     return balance;
   }
-  inline Rate getRate() {
+  inline QuantLib::Rate getRate() {
     return rate;
   }
   inline unsigned int getId() {
     return id;
   }
-  inline Calendar getCalendar() {
+  inline QuantLib::Calendar getCalendar() {
     return exchangeCalendar;
   }
-  inline Currency getCurrency() {
+  inline QuantLib::Currency getCurrency() {
     return balance.currency();
   }
 
-  inline void debitAccount(Money amt) {
-    stringstream msg;
+  inline void debitAccount(QuantLib::Money amt) {
+    std::stringstream msg;
     msg << "Debits to account " << id << " must be made in "
         << balance.currency() << " and not " << amt.currency() << ".";
     QL_REQUIRE(amt.currency() == balance.currency(), msg.str());
     balance -= amt;
     if (balance < 0 * balance.currency()) {
-      cerr << "Balance fell below zero to " << balance << endl;
+      //std::cerr << "Balance fell below zero to " << balance << std::endl;
     }
   }
 
-  inline void creditAccount(Money amt) {
-    stringstream msg;
+  inline void creditAccount(QuantLib::Money amt) {
+    std::stringstream msg;
     msg << "Credits to account " << id << " must be made in "
         << balance.currency() << " and not " << amt.currency() << ".";
     QL_REQUIRE(amt.currency() == balance.currency(), msg.str());
     balance += amt;
   }
 
-  string toString() {
-    stringstream msg;
+  std::string toString() {
+    std::stringstream msg;
     msg << "Name: " << name << "; Calendar: " << exchangeCalendar.name()
         << "; Rate: " << rate << "; Balance: " << balance;
     return msg.str();
   }
 };
 
-#endif /* ACCOUNT_H_ */
+#endif  // WORTH_ACCOUNT_H_
