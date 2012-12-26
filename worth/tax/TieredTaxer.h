@@ -46,7 +46,7 @@ class TieredTaxer {
 
     std::stringstream msg;
     msg << "Income " << income << " was not denominated in " << this->currency;
-    QL_REQUIRE(income.currency() != this->currency, msg.str());
+    QL_REQUIRE(income.currency() == this->currency, msg.str());
 
     QuantLib::Money workingRemainder = income;
 
