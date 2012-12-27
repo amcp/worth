@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
-#include "MyEvent.h"
-#include "Job.h"
+#include "worth/MyEvent.h"
+#include "worth/Job.h"
 
 class PersonEvent : public MyEvent {
  private:
@@ -23,7 +23,7 @@ class PersonEvent : public MyEvent {
   std::string command;
   std::vector<std::string> tokens;
  public:
-  PersonEvent(Person& j, std::string str, Date exec)
+  PersonEvent(Person& j, std::string str, QuantLib::Date exec)
       : MyEvent(exec),
         person(j),
         command(str) {
@@ -46,14 +46,14 @@ class PersonEvent : public MyEvent {
       return;
     }
 
-    cout << exec << ": " << command << endl;
+    std::cout << exec << ": " << command << std::endl;
 
     if (tokens[0].compare("FILE_TAX_RETURN") == 0 && tokens.size() == 3) {
       int year = 0;
       try {
         year = boost::lexical_cast<int>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        std::cerr << "Unable to parse" << std::endl;
         year = 0;
       }
 
@@ -61,22 +61,22 @@ class PersonEvent : public MyEvent {
       try {
         uniformDeduction = boost::lexical_cast<double>(tokens[2]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        std::cerr << "Unable to parse" << std::endl;
         uniformDeduction = 0;
       }
 
-      hash_map<std::string, QuantLib::Money, hash<std::string> > returnsByJuris = person
+      __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> > returnsByJuris = person
           .generateTaxReturn(year, uniformDeduction * person.getCurrency());
 
-      for (hash_map<std::string, QuantLib::Money, hash<std::string> >::iterator it = returnsByJuris
+      for (__gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >::iterator it = returnsByJuris
           .begin(); it != returnsByJuris.end(); it++) {
-        cout << "Date: " << exec << "; Depositing " << (*it).first
-             << " return of " << (*it).second << endl;
+        std::cout << "Date: " << exec << "; Depositing " << (*it).first
+             << " return of " << (*it).second << std::endl;
         person.getMainDepository()->creditAccount((*it).second);
-        cout << person.getMainDepository()->toString() << endl;
+        std::cout << person.getMainDepository()->toString() << std::endl;
       }
     } else {
-      cerr << "Unknown job event: " << command << endl;
+      std::cerr << "Unknown job event: " << command << std::endl;
     }
   }
 };

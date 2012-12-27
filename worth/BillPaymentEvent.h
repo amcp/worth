@@ -35,7 +35,7 @@ class BillPaymentEvent : public MyEvent {
     tokens.clear();
   }
 
-  string toString() const {
+  std::string toString() const {
     return command;
   }
 

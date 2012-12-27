@@ -107,7 +107,7 @@ class JobChangeEvent : public MyEvent {
       }
       job.setTaxableDeductionsPerPeriod(tempDouble * job.getCurrency());
     } else if (tokens[0].compare("CHANGE_EXEMPTION") == 0) {
-      hash_map<string, int, hash<string> > exemptions = job.getExemptions();
+      __gnu_cxx::hash_map<string, int, __gnu_cxx::hash<string> > exemptions = job.getExemptions();
       try {
         tempUint = boost::lexical_cast<int>(tokens[2]);
       } catch (const boost::bad_lexical_cast&) {

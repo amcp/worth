@@ -25,8 +25,8 @@ class Job;
 
 class JobPayment : public Payment {
  public:
-  typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
-      __gnu_cxx ::hash<std::string> > StringMoneyMap;
+  typedef __gnu_cxx::hash_map<std::string, QuantLib::Money,
+      __gnu_cxx::hash<std::string> > StringMoneyMap;
 
  private:
   JobPayment()

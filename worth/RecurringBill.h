@@ -28,7 +28,7 @@ class RecurringBill {
   Person& user;
 
  public:
-  RecurringBill(std::string nameIn, Money amountIn, QuantLib::Period tenor,
+  RecurringBill(std::string nameIn, QuantLib::Money amountIn, QuantLib::Period tenor,
                 QuantLib::Date startDate, QuantLib::Date endDate,
                 QuantLib::Calendar calendar, DepositoryAccount* payer,
                 Person& usr)

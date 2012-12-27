@@ -17,14 +17,14 @@
 
 class Mortgage : public RecurringBill {
  protected:
-  Money closingCosts;
+  QuantLib::Money closingCosts;
   Account balance;
 
  public:
-  Mortgage(string nameIn, Money amountIn, Date startDate, Date endDate,
-           Calendar calendar, DepositoryAccount* payer, Money closing,
-           Rate rate, Money startingBalance, Person& user)
-      : RecurringBill(nameIn, amountIn, Period(1, Months), startDate, endDate,
+  Mortgage(std::string nameIn, QuantLib::Money amountIn, QuantLib::Date startDate, QuantLib::Date endDate,
+           QuantLib::Calendar calendar, DepositoryAccount* payer, QuantLib::Money closing,
+           QuantLib::Rate rate, QuantLib::Money startingBalance, Person& user)
+      : RecurringBill(nameIn, amountIn, QuantLib::Period(1, QuantLib::Months), startDate, endDate,
                       calendar, payer, user),
         balance(Account(startingBalance, rate, calendar, nameIn)) {
   }
@@ -33,8 +33,8 @@ class Mortgage : public RecurringBill {
   }
 
   inline PartiallyDeductiblePayment* getNextBillPayment() {
-    Money interest = -1 * balance.getBalance() * balance.getRate() / 12.0;
-    Money principal = amount - interest;
+    QuantLib::Money interest = -1 * balance.getBalance() * balance.getRate() / 12.0;
+    QuantLib::Money principal = amount - interest;
     return new PartiallyDeductiblePayment(*paymentIterator, amount, interest);
   }
 
