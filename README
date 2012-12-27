@@ -1,0 +1,14 @@
+Worth - Cash Flow Analysis for Individuals.
+=====
+
+This software is released under the GPL V3 or later.
+
+Import the git repository http://www.github.com/amcp/worth into
+Eclipse Git Repository Exploring perspective.
+
+Then, Import C++ project from the repository.
+
+This project depends on the Boost headers and the QuantLib
+headers and libraries being installed in well known locations.
+
+Enjoy!
