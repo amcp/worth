@@ -46,10 +46,10 @@ class RecurringBill {
   Person& user;
 
  public:
-  RecurringBill(std::string nameIn, QuantLib::Money amountIn, QuantLib::Period tenor,
-                QuantLib::Date startDate, QuantLib::Date endDate,
-                QuantLib::Calendar calendar, DepositoryAccount* payer,
-                Person& usr)
+  RecurringBill(std::string nameIn, QuantLib::Money amountIn,
+                QuantLib::Period tenor, QuantLib::Date startDate,
+                QuantLib::Date endDate, QuantLib::Calendar calendar,
+                DepositoryAccount* payer, Person& usr)
       : name(nameIn),
         amount(amountIn),
         active(true),
@@ -102,7 +102,6 @@ class RecurringBill {
     return user;
   }
 };
-
 }
 
 #endif  // WORTH_RECURRINGBILL_H_

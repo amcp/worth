@@ -22,10 +22,11 @@
 #define WORTH_JOBCHANGEEVENT_H_
 
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cstdio>
 #include <string>
+#include <algorithm>
 #include <vector>
-#include <boost/lexical_cast.hpp>
 #include "worth/MyEvent.h"
 #include "worth/Job.h"
 #include "worth/JobPaymentEvent.h"
@@ -66,7 +67,7 @@ class JobChangeEvent : public MyEvent {
     if (tokens[0].compare("HOURLY_RAISE") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -77,7 +78,7 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_EMPLOYEE_403B_CONTRIBUTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -85,7 +86,7 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_EXTRA_PAYMENT") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -93,7 +94,7 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_EMPLOYER_RETIREMENT_GIFT") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -101,7 +102,7 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_PRESOCIAL_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -109,7 +110,7 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_PREINCOME_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
@@ -117,16 +118,16 @@ class JobChangeEvent : public MyEvent {
     } else if (tokens[0].compare("CHANGE_POSTTAX_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
       job->setTaxableDeductionsPerPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_EXEMPTION") == 0) {
-      __gnu_cxx::hash_map<std::string, int, __gnu_cxx::hash<std::string> > exemptions = job->getExemptions();
+      NominalExemptionMap exemptions = job->getExemptions();
       try {
         tempUint = boost::lexical_cast<int>(tokens[2]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[2].c_str());
         tempUint = 0;
       }
@@ -147,7 +148,6 @@ class JobChangeEvent : public MyEvent {
     return command;
   }
 };
-
 }
 
-#endif /* WORTH_JOBCHANGEEVENT_H_ */
+#endif  // WORTH_JOBCHANGEEVENT_H_

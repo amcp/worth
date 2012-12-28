@@ -153,7 +153,7 @@ class TaxDictionary {
     return (*it).second;
   }
 
-  __gnu_cxx::hash_map<std::string, TieredTaxer*, __gnu_cxx::hash<std::string> > getSocialTaxers(
+  IncomeTaxerMap getSocialTaxers(
       int year, const std::string jurisdiction) {
     std::stringstream msg1;
     msg1 << "Social taxer data missing for year " << year << ".";

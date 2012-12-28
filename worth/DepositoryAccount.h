@@ -91,7 +91,6 @@ class DepositoryAccount {
   QuantLib::Schedule generateCouponSchedule(const QuantLib::Date& start,
                                             const QuantLib::Date& end);
 };
-
 }
 
 #endif  // WORTH_DEPOSITORYACCOUNT_H_

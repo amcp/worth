@@ -45,7 +45,8 @@ Utility* Utility::theInstance = NULL;
 std::vector<std::string> Utility::readLines(const std::string& fname) {
   FILE* fp = fopen(fname.c_str(), "r");
   if (!fp) {
-    fprintf(stderr, "Can't open file %s for reading: %s\n", fname.c_str(), std::strerror(errno));
+    fprintf(stderr, "Can't open file %s for reading: %s\n", fname.c_str(),
+            std::strerror(errno));
     return std::vector<std::string>();
   }
 
@@ -65,15 +66,19 @@ std::vector<std::string> Utility::readLines(const std::string& fname) {
   char *buf = reinterpret_cast<char *>(std::malloc(len));
   if (!buf) {
     fclose(fp);
-    fprintf(stderr, "Unable to allocate %u bytes of memory for file %s\n", len, fname.c_str());
+    fprintf(stderr, "Unable to allocate %u bytes of memory for file %s\n", len,
+            fname.c_str());
     return std::vector<std::string>();
   }
 
   // read whole file
   if (fread(buf, 1, len, fp) != len) {
-    free(buf); buf = NULL;
+    free(buf);
+    buf = NULL;
     fclose(fp);
-    fprintf(stderr, "Unable to read %u bytes of data from file %s into memory\n", len, fname.c_str());
+    fprintf(stderr,
+            "Unable to read %u bytes of data from file %s into memory\n", len,
+            fname.c_str());
     return std::vector<std::string>();
   }
 
@@ -101,5 +106,4 @@ std::string Utility::convertDate(const QuantLib::Date& date) const {
   msg << date;
   return msg.str();
 }
-
 }

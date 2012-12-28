@@ -19,13 +19,15 @@
  * along with Worth. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "Job.h"
-#include <cmath>
+#include "worth/Job.h"
 #include <ql/money.hpp>
 #include <ql/cashflows/simplecashflow.hpp>
+#include <ext/hash_map>
+#include <cmath>
+#include <string>
 #include "worth/DepositoryAccount.h"
-#include "tax/TieredTaxer.h"
-#include "tax/TaxDictionary.h"
+#include "worth/tax/TieredTaxer.h"
+#include "worth/tax/TaxDictionary.h"
 
 namespace Worth {
 
@@ -97,24 +99,24 @@ JobPayment* Job::getNextPayment() {
   QuantLib::Money payrollAdjSocialIncome = getAdjustedAnnualSocialIncome(
       extraPayInPeriod);
   QuantLib::Money payrollAdjIncome = getAdjustedAnnualIncome(extraPayInPeriod);
-  //TODO
-  Worth::TaxDictionary* dict = NULL;  //Worth::TaxDictionary::getInstance();
+  // TODO(amcp)
+  Worth::TaxDictionary* dict = NULL;  // Worth::TaxDictionary::getInstance();
   unsigned int year = getCurrentPaymentDate().year();
 
   __gnu_cxx ::hash_map<std::string, QuantLib::Money,
       __gnu_cxx ::hash<std::string> > stateIncomeTaxes;
-  for (__gnu_cxx ::hash_map<std::string, int, __gnu_cxx ::hash<std::string> >::const_iterator it =
-      exemptions.begin(); it != exemptions.end(); it++) {
+  for (NominalExemptionMap::const_iterator it = exemptions.begin();
+      it != exemptions.end(); it++) {
     if ((*it).first.compare("US") != 0) {
-      //for states, compute income tax
+      // for states, compute income tax
       __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
           __gnu_cxx ::hash<std::string> >::const_iterator jurisIt =
           taxJurisdictions.find((*it).first);
       QuantLib::Rate jurisRate = (*jurisIt).second;
       QuantLib::Money exemptionAmt = dict->getExemptionAmount(year,
                                                               (*it).first);
-      __gnu_cxx ::hash_map<std::string, int, __gnu_cxx ::hash<std::string> >::const_iterator exemptionIt =
-          exemptions.find((*it).first);
+      NominalExemptionMap::const_iterator exemptionIt = exemptions.find(
+          (*it).first);
       unsigned int noExemptions = (*exemptionIt).second;
       QuantLib::Money payrollAdjIncomeMinusExemption = payrollAdjIncome
           - exemptionAmt * noExemptions;
@@ -126,7 +128,7 @@ JobPayment* Job::getNextPayment() {
     }
   }
 
-  //subtract no exempt. * exempt notional and subtract state income taxes paid
+  // subtract no exempt. * exempt notional and subtract state income taxes paid
   QuantLib::Money stateIt = 0 * balance.currency();
   for (__gnu_cxx ::hash_map<std::string, QuantLib::Money,
       __gnu_cxx ::hash<std::string> >::iterator it = stateIncomeTaxes.begin();
@@ -134,31 +136,31 @@ JobPayment* Job::getNextPayment() {
     stateIt += (*it).second;
   }
   QuantLib::Money federalExemption = dict->getExemptionAmount(year, "US");
-  __gnu_cxx ::hash_map<std::string, int, __gnu_cxx ::hash<std::string> >::const_iterator exemptionIt =
-      exemptions.find("US");
+  NominalExemptionMap::const_iterator exemptionIt = exemptions.find("US");
   int federalNoExemptions = (*exemptionIt).second;
-  QuantLib::Money federalPayrollAdjIncome = payrollAdjIncome
-      - federalExemption * federalNoExemptions - stateIt;  // + imputedVacIncome;
+  QuantLib::Money federalPayrollAdjIncome = payrollAdjIncome;
+  federalPayrollAdjIncome -= stateIt;
+  federalPayrollAdjIncome -= federalExemption * federalNoExemptions;
+  // + imputedVacIncome;
 
   stateIncomeTaxes["US"] = dict->getIncomeTaxer(year, "US")->computeTax(
       federalPayrollAdjIncome) / static_cast<double>(getPayPeriodsPerYear());
 
   QuantLib::Money socialTaxes = 0 * balance.currency();
-  __gnu_cxx ::hash_map<std::string,
-      __gnu_cxx ::hash_map<std::string, QuantLib::Money,
-          __gnu_cxx ::hash<std::string> >, __gnu_cxx ::hash<std::string> > socialTaxMap;
-  for (__gnu_cxx ::hash_map<std::string, QuantLib::Rate,
-      __gnu_cxx ::hash<std::string> >::const_iterator it = taxJurisdictions
-      .begin(); it != taxJurisdictions.end(); it++) {
+  __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
+      __gnu_cxx ::hash<std::string> > socialTaxMap;
+  __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
+        __gnu_cxx ::hash<std::string> >::const_iterator it;
+  for (it = taxJurisdictions.begin(); it != taxJurisdictions.end(); it++) {
     if (!dict->hasSocialTaxers(year, (*it).first)) {
       continue;
     }
     __gnu_cxx ::hash_map<std::string, Worth::TieredTaxer*,
         __gnu_cxx ::hash<std::string> > taxers = dict->getSocialTaxers(
         year, (*it).first);
-    for (__gnu_cxx ::hash_map<std::string, Worth::TieredTaxer*,
-        __gnu_cxx ::hash<std::string> >::const_iterator jurisTaxerIt = taxers
-        .begin(); jurisTaxerIt != taxers.end(); jurisTaxerIt++) {
+    __gnu_cxx ::hash_map<std::string, Worth::TieredTaxer*,
+            __gnu_cxx ::hash<std::string> >::const_iterator jurisTaxerIt;
+    for (jurisTaxerIt = taxers.begin(); jurisTaxerIt != taxers.end(); jurisTaxerIt++) {
       __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
           __gnu_cxx ::hash<std::string> >::const_iterator jurisIt =
           taxJurisdictions.find((*it).first);
@@ -179,13 +181,14 @@ JobPayment* Job::getNextPayment() {
   QuantLib::Money periodPayAfterTaxation = payrollAdjIncomePerPeriod
       - stateIncomeTaxes["US"] - stateIt - socialTaxes
       - getTaxableDeductionsPerPeriod();
-  QuantLib::Money gross = balance * double(effort)
+  QuantLib::Money gross = balance * static_cast<double>(effort)
       / static_cast<double>(getPayPeriodsPerYear()) + extraPayInPeriod;
   QuantLib::Money employerContribution = gross
       * this->employerRetirementGiftRatio;
-  QuantLib::Money employerMatch = preIncomeTaxDeductionsPerPeriod * employerRetirementMatchRatio;
+  QuantLib::Money employerMatch = preIncomeTaxDeductionsPerPeriod
+      * employerRetirementMatchRatio;
   QuantLib::Money employerMaxMatch = gross * employerRetirementMatchMaximum;
-  if(employerMatch < employerMaxMatch) {
+  if (employerMatch < employerMaxMatch) {
     employerContribution += employerMatch;
   } else {
     employerContribution += employerMaxMatch;
@@ -201,5 +204,4 @@ JobPayment* Job::getNextPayment() {
   paymentIterator++;
   return result;
 }
-
 }

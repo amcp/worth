@@ -68,7 +68,6 @@ class PartiallyDeductiblePayment : public Payment {
     return deductiblePortion;
   }
 };
-
 }
 
 #endif  // WORTH_PAYMENT_H_

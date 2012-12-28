@@ -118,7 +118,6 @@ class Sequencer {
     printf("Dumping events in queue.\n");
   }
 };
-
 }
 
 #endif  // WORTH_MYEVENT_H_

@@ -31,5 +31,4 @@ MyEvent::MyEvent() {
 MyEvent::~MyEvent() {
   // TODO(amcp) Auto-generated destructor stub
 }
-
 }

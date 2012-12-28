@@ -27,10 +27,10 @@
 #include <ql/money.hpp>
 #include <ql/currencies/america.hpp>
 
+#include <ext/hash_map>
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <ext/hash_map>
 
 #include "worth/DepositoryAccount.h"
 #include "worth/Utility.h"
@@ -44,8 +44,8 @@ class Job;
 
 class JobPayment : public Payment {
  public:
-  typedef __gnu_cxx::hash_map<std::string, QuantLib::Money,
-      __gnu_cxx::hash<std::string> > StringMoneyMap;
+  typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
+      __gnu_cxx ::hash<std::string> > StringMoneyMap;
 
  private:
   JobPayment()
@@ -111,6 +111,8 @@ class JobPayment : public Payment {
 
 typedef __gnu_cxx ::hash_map<int,
     __gnu_cxx ::hash_map<int, std::vector<JobPayment*> > > PaymentMap;
+typedef __gnu_cxx::hash_map<std::string,
+    int, __gnu_cxx ::hash<std::string> > NominalExemptionMap;
 
 class Person {
  private:
@@ -118,7 +120,7 @@ class Person {
   std::vector<DepositoryAccount*> assets;
   std::vector<DepositoryAccount*> liabilities;
   PaymentMap paymentsPerCalendarYearAndMonth;
-  __gnu_cxx ::hash_map<std::string, int, __gnu_cxx ::hash<std::string> > nominalExemptions;
+  NominalExemptionMap nominalExemptions;
   DepositoryAccount* mainDepository;
   // year->month->billName->vector
   __gnu_cxx ::hash_map<int,
@@ -143,11 +145,13 @@ class Person {
     liabilities.push_back(liability);
   }
   inline void addPayment(JobPayment* payment) {
-    paymentsPerCalendarYearAndMonth[payment->getDate().year()][payment->getDate()
+    QuantLib::Year year = payment->getDate().year();
+    paymentsPerCalendarYearAndMonth[year][payment->getDate()
         .month()].push_back(payment);
   }
   inline void addBillPayment(const std::string name, Payment* payment) {
-    billPayments[payment->getDate().year()][payment->getDate().month()][name]
+    QuantLib::Year year = payment->getDate().year();
+    billPayments[year][payment->getDate().month()][name]
         .push_back(payment);
   }
 
@@ -188,22 +192,24 @@ class Person {
             pmtIt++) {
           categoryTotal += (*pmtIt)->getAmount();
         }
-        printf("%s: %s\n", (*catIt).first.c_str(), util->convertMoney(categoryTotal).c_str());
+        printf("%s: %s\n", (*catIt).first.c_str(),
+               util->convertMoney(categoryTotal).c_str());
         monthTotalExpense += categoryTotal;
       }
       printf("\n");
 
       QuantLib::Money monthTotalIncome = 0 * currency;
-      for (std::vector<JobPayment*>::iterator jobIt = jobPaymentsInYear[(*monthIt)
-          .first].begin(); jobIt != jobPaymentsInYear[(*monthIt).first].end();
-          jobIt++) {
+      for (std::vector<JobPayment*>::iterator jobIt =
+          jobPaymentsInYear[(*monthIt).first].begin();
+          jobIt != jobPaymentsInYear[(*monthIt).first].end(); jobIt++) {
         monthTotalIncome += (*jobIt)->getAmount();
       }
 
       monthCashFlow = monthTotalIncome - monthTotalExpense;
       cumulativeCashFlow += monthCashFlow;
       printf("Year: %u; Month: %u; Total expenses: %s; Total income: %s; ",
-             year, monthIt->first, util->convertMoney(monthTotalExpense).c_str(),
+             year, monthIt->first,
+             util->convertMoney(monthTotalExpense).c_str(),
              util->convertMoney(monthTotalIncome).c_str());
       printf("; Net cash flow: %s; YTD cash flow: %s\n",
              util->convertMoney(monthCashFlow).c_str(),
@@ -224,8 +230,9 @@ class Job {
   QuantLib::Money preIncomeTaxDeductionsPerPeriod;
   QuantLib::Money preSocialTaxDeductionsPerPeriod;
   QuantLib::Money taxableDeductionsPerPeriod;
-  __gnu_cxx ::hash_map<std::string, QuantLib::Rate, __gnu_cxx ::hash<std::string> > taxJurisdictions;
-  __gnu_cxx ::hash_map<std::string, int> exemptions;
+  __gnu_cxx ::hash_map<std::string, QuantLib::Rate,
+      __gnu_cxx ::hash<std::string> > taxJurisdictions;
+  NominalExemptionMap exemptions;
   unsigned int effort;
   QuantLib::Period payPeriod;
   QuantLib::Date start;
@@ -298,12 +305,14 @@ class Job {
     this->employerRetirementMatchMaximum = rhs.employerRetirementMatchMaximum;
     this->employerRetirementMatchRatio = rhs.employerRetirementMatchRatio;
     this->paySchedule = rhs.paySchedule;
-    this->paymentIterator = this->paySchedule.begin();  // not the same! caution!
+    // not the same! caution!
+    this->paymentIterator = this->paySchedule.begin();
   }
 
   // assignment operator
   Job& operator=(const Job &rhs) {
-    // Only do assignment if RHS is a different object from this. Self assignment check
+    // Only do assignment if RHS is a different
+    // object from this. Self assignment check
     if (this != &rhs) {
       this->user = rhs.user;
       this->balance = rhs.balance;
@@ -330,7 +339,8 @@ class Job {
       this->employerRetirementMatchMaximum = rhs.employerRetirementMatchMaximum;
       this->employerRetirementMatchRatio = rhs.employerRetirementMatchRatio;
       this->paySchedule = rhs.paySchedule;
-      this->paymentIterator = this->paySchedule.begin();  // not the same! caution!
+      // not the same! caution!
+      this->paymentIterator = this->paySchedule.begin();
     }
 
     return *this;
@@ -449,11 +459,11 @@ class Job {
     this->taxJurisdictions = juris;
   }
 
-  inline const __gnu_cxx ::hash_map<std::string, int> getExemptions() const {
+  inline const NominalExemptionMap getExemptions() const {
     return exemptions;
   }
 
-  inline void setExemptions(__gnu_cxx ::hash_map<std::string, int> ex) {
+  inline void setExemptions(NominalExemptionMap ex) {
     exemptions = ex;
   }
 
@@ -467,7 +477,6 @@ class Job {
     return paymentIterator != paySchedule.end();
   }
 };
-
 }
 
 #endif  // WORTH_JOB_H_

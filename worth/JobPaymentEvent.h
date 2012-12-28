@@ -40,7 +40,6 @@ class JobPaymentEvent : public MyEvent {
   JobPayment* pmt;
 
  public:
-
   JobPaymentEvent(QuantLib::Date d, Job* j)
       : MyEvent(d),
         job(j),
@@ -48,7 +47,7 @@ class JobPaymentEvent : public MyEvent {
     assert(job != NULL);
   }
 
-  //factory method
+  // factory method
   static JobPaymentEvent* createJobPaymentEvent(QuantLib::Date d, Job* j) {
     return new JobPaymentEvent(d, j);
   }
@@ -78,14 +77,15 @@ class JobPaymentEvent : public MyEvent {
       employeeRetire = job->getEmployeeRetirementContributionAccount();
       employeeRetire->creditAccount(pmt->getEmployeeRetireContribution());
 
-      sequencer->addEvent(new JobPaymentEvent(job->getCurrentPaymentDate(), job));
+      JobPaymentEvent* ev;
+      ev = new JobPaymentEvent(job->getCurrentPaymentDate(), job);
+      sequencer->addEvent(ev);
 
       printf("%s\n", pmt->toString().c_str());
       job->getUser()->addPayment(pmt);
     }
   }
 };
-
 }
 
 #endif  // WORTH_JOBPAYMENTEVENT_H_

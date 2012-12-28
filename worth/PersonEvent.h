@@ -24,11 +24,11 @@
 #define WORTH_PERSONEVENT_H_
 
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cstdio>
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 #include "worth/DepositoryAccount.h"
 #include "worth/MyEvent.h"
 #include "worth/Job.h"
@@ -37,11 +37,12 @@ namespace Worth {
 
 class PersonEvent : public MyEvent {
  private:
-  Person& person;
+  Person* person;
   std::string command;
   std::vector<std::string> tokens;
+
  public:
-  PersonEvent(Person& j, std::string str, QuantLib::Date exec)
+  PersonEvent(Person* j, std::string str, QuantLib::Date exec)
       : MyEvent(exec),
         person(j),
         command(str) {
@@ -69,7 +70,7 @@ class PersonEvent : public MyEvent {
       int year = 0;
       try {
         year = boost::lexical_cast<int>(tokens[1]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as an int.\n", tokens[1].c_str());
         year = 0;
       }
@@ -77,27 +78,27 @@ class PersonEvent : public MyEvent {
       double uniformDeduction = 0;
       try {
         uniformDeduction = boost::lexical_cast<double>(tokens[2]);
-      } catch (const boost::bad_lexical_cast&) {
+      } catch(const boost::bad_lexical_cast&) {
         fprintf(stderr, "Unable to parse %s as a double.\n", tokens[2].c_str());
         uniformDeduction = 0.0;
       }
 
-      JobPayment::StringMoneyMap returnsByJuris = person
-          .generateTaxReturn(year, uniformDeduction * person.getCurrency());
+      JobPayment::StringMoneyMap returnsByJuris = person->generateTaxReturn(
+          year, uniformDeduction * person->getCurrency());
 
       JobPayment::StringMoneyMap::iterator it;
       for (it = returnsByJuris.begin(); it != returnsByJuris.end(); it++) {
-        printf("Date: %s; Depositing %s return of %s\n", exec, it->first.c_str(), it->second);
+        printf("Date: %s; Depositing %s return of %s\n", exec,
+               it->first.c_str(), it->second);
         QuantLib::Money returnMoney = (*it).second;
-        person.getMainDepository()->creditAccount(returnMoney);
-        printf("%s\n", person.getMainDepository()->toString().c_str());
+        person->getMainDepository()->creditAccount(returnMoney);
+        printf("%s\n", person->getMainDepository()->toString().c_str());
       }
     } else {
       fprintf(stderr, "Unknown job event: %s\n", command.c_str());
     }
   }
 };
-
 }
 
-#endif /* WORTH_PERSONEVENT_H_ */
+#endif  // WORTH_PERSONEVENT_H_

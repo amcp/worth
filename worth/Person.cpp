@@ -20,14 +20,13 @@
  * along with Worth. If not, see http://www.gnu.org/licenses/.
  */
 
-#include "worth/Job.h"
-
+#include <ext/hash_map>
 #include <cstdio>
 #include <vector>
 #include <set>
 #include <string>
-#include <ext/hash_map>
 
+#include "worth/Job.h"
 #include "worth/tax/TaxDictionary.h"
 #include "worth/Utility.h"
 #include "worth/DepositoryAccount.h"
@@ -132,7 +131,7 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
     }
   }
 
-  printf("Tax paid to state jurisdictions for federal income tax purposes in %u: %s\n",
+  printf("Tax paid to states for federal income tax purposes in %u: %s\n",
          year, util->convertMoney(taxesPaidToStateJurisdictions).c_str());
   printf("Yearly income wages were: %s\n",
          util->convertMoney(yearlyIncomeWages).c_str());
@@ -153,7 +152,6 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
       federalTaxableIncome);
   for (std::set<std::string>::iterator itin = stateJurisdictions.begin();
       itin != stateJurisdictions.end(); itin++) {
-
     QuantLib::Money taxableIncome = yearlyIncomeWages;
     taxableIncome -= deductionsInAllJurisdictions;
     taxableIncome -= dict->getExemptionAmount(year, *itin);
@@ -190,5 +188,4 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
 
   return result;
 }
-
 }

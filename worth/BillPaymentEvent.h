@@ -67,7 +67,6 @@ class BillPaymentEvent : public MyEvent {
     }
   }
 };
-
 }
 
 #endif  // WORTH_BILLPAYMENTEVENT_H_

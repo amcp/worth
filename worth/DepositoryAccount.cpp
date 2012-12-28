@@ -23,12 +23,12 @@
 #include <ql/time/dategenerationrule.hpp>
 #include <ql/time/schedule.hpp>
 #include <cassert>
+#include <string>
 #include "worth/DepositoryAccount.h"
 
 namespace Worth {
 
 DepositoryAccount::~DepositoryAccount() {
-
 }
 
 QuantLib::Schedule DepositoryAccount::generateCouponSchedule(
@@ -38,7 +38,6 @@ QuantLib::Schedule DepositoryAccount::generateCouponSchedule(
                            QuantLib::ModifiedFollowing,
                            QuantLib::ModifiedPreceding,
                            QuantLib::DateGeneration::Forward, false);
-
   return sched;
 }
 void DepositoryAccount::debitAccount(QuantLib::Money amt) {
@@ -47,7 +46,6 @@ void DepositoryAccount::debitAccount(QuantLib::Money amt) {
   if (balance < 0 * balance.currency()) {
     fprintf(stderr, "Balance fell below zero to %s.\n",
             Utility::getInstance()->convertMoney(balance).c_str());
-
   }
 }
 
@@ -71,5 +69,4 @@ std::string DepositoryAccount::toString() {
           << "; Rate: " << rate << "; Balance: " << balance;
   return msg.str();
 }
-
 }
