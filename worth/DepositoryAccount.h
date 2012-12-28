@@ -24,6 +24,7 @@
 #define WORTH_DEPOSITORYACCOUNT_H_
 
 #include <ql/currency.hpp>
+#include <ql/money.hpp>
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 
@@ -31,7 +32,9 @@
 #include <string>
 #include <sstream>
 
-#include "worth/Account.h"
+#include "worth/Utility.h"
+
+namespace Worth {
 
 enum DepositType {
   CASH,
@@ -39,8 +42,12 @@ enum DepositType {
   IRA
 };
 
-class DepositoryAccount : public Account {
+class DepositoryAccount {
  private:
+  QuantLib::Money balance;
+  QuantLib::Rate rate;
+  QuantLib::Calendar exchangeCalendar;
+  std::string name;
   DepositType type;
   unsigned int anniversary;
 
@@ -48,13 +55,15 @@ class DepositoryAccount : public Account {
   DepositoryAccount(const QuantLib::Currency& currency, unsigned int dayOfMonth,
                     DepositType typeIn, QuantLib::Calendar exchCal,
                     std::string nameIn)
-      : Account(0 * currency, 0, exchCal, nameIn),
+      : balance(0 * currency),
+        rate(0),
+        exchangeCalendar(exchCal),
+        name(nameIn),
         type(typeIn),
         anniversary(dayOfMonth) {
   }
 
-  ~DepositoryAccount() {
-  }
+  ~DepositoryAccount();
 
   inline DepositType getType() {
     return type;
@@ -63,22 +72,26 @@ class DepositoryAccount : public Account {
     this->rate = newRate;
   }
 
+  inline QuantLib::Money getBalance() {
+    return balance;
+  }
+  inline QuantLib::Rate getRate() {
+    return rate;
+  }
+  inline QuantLib::Calendar getCalendar() {
+    return exchangeCalendar;
+  }
+  inline QuantLib::Currency getCurrency() {
+    return balance.currency();
+  }
+
+  void debitAccount(QuantLib::Money amt);
+  void creditAccount(QuantLib::Money amt);
+  std::string toString();
   QuantLib::Schedule generateCouponSchedule(const QuantLib::Date& start,
                                             const QuantLib::Date& end);
-
-  std::string toString() {
-    std::stringstream msg;
-    msg << "Type: ";
-    if (type == CASH) {
-      msg << "CASH";
-    } else if (type == RETIREMENT) {
-      msg << "RETIREMENT";
-    } else if (type == IRA) {
-      msg << "IRA";
-    }
-    msg << "; " << Account::toString();
-    return msg.str();
-  }
 };
+
+}
 
 #endif  // WORTH_DEPOSITORYACCOUNT_H_

@@ -25,21 +25,34 @@
 
 #include <ql/time/date.hpp>
 
+#include <cstdio>
+#include <cassert>
 #include <string>
 
 #include "worth/MyEvent.h"
 #include "worth/Job.h"
 
+namespace Worth {
+
 class JobPaymentEvent : public MyEvent {
  private:
   Job* job;
   JobPayment* pmt;
+
  public:
+
   JobPaymentEvent(QuantLib::Date d, Job* j)
       : MyEvent(d),
         job(j),
         pmt(NULL) {
+    assert(job != NULL);
   }
+
+  //factory method
+  static JobPaymentEvent* createJobPaymentEvent(QuantLib::Date d, Job* j) {
+    return new JobPaymentEvent(d, j);
+  }
+
   ~JobPaymentEvent() {
     delete pmt;
   }
@@ -51,7 +64,28 @@ class JobPaymentEvent : public MyEvent {
     return result;
   }
 
-  void apply(Sequencer* sequencer);
+  void apply(Sequencer* sequencer) {
+    if (job->hasMorePayments()) {
+      pmt = job->getNextPayment();
+      DepositoryAccount* dd = this->job->getDDAccount();
+      dd->creditAccount(pmt->getAmount());
+
+      DepositoryAccount* employerRetire;
+      employerRetire = job->getEmployerRetirementContributionAccount();
+      employerRetire->creditAccount(pmt->getEmployerRetireContribution());
+
+      DepositoryAccount* employeeRetire;
+      employeeRetire = job->getEmployeeRetirementContributionAccount();
+      employeeRetire->creditAccount(pmt->getEmployeeRetireContribution());
+
+      sequencer->addEvent(new JobPaymentEvent(job->getCurrentPaymentDate(), job));
+
+      printf("%s\n", pmt->toString().c_str());
+      job->getUser()->addPayment(pmt);
+    }
+  }
 };
+
+}
 
 #endif  // WORTH_JOBPAYMENTEVENT_H_

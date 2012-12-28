@@ -22,12 +22,17 @@
 
 #include "worth/Job.h"
 
+#include <cstdio>
 #include <vector>
 #include <set>
 #include <string>
 #include <ext/hash_map>
 
 #include "worth/tax/TaxDictionary.h"
+#include "worth/Utility.h"
+#include "worth/DepositoryAccount.h"
+
+namespace Worth {
 
 Person::Person(QuantLib::Currency cur,
                __gnu_cxx ::hash_map<std::string, int> ex)
@@ -66,9 +71,9 @@ void Person::addAsset(DepositoryAccount* asset) {
 
 JobPayment::StringMoneyMap Person::generateTaxReturn(
     int year, QuantLib::Money deductionsInAllJurisdictions) {
-  std::cout << "Processing " << year
-            << " tax return. Deductions in all jurisdictions are: "
-            << deductionsInAllJurisdictions << std::endl;
+  Utility* util = Utility::getInstance();
+  printf("Processing %u tax return. Deductions in all jurisdictions are: %s\n",
+         year, util->convertMoney(deductionsInAllJurisdictions).c_str());
   JobPayment::StringMoneyMap result;
   JobPayment::StringMoneyMap taxesPaid;
   JobPayment::StringMoneyMap taxesOwed;
@@ -127,10 +132,10 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
     }
   }
 
-  std::cout
-      << "Tax paid to state jurisdictions for federal income tax purposes in "
-      << year << ": " << taxesPaidToStateJurisdictions << std::endl;
-  std::cout << "Yearly income wages were: " << yearlyIncomeWages << std::endl;
+  printf("Tax paid to state jurisdictions for federal income tax purposes in %u: %s\n",
+         year, util->convertMoney(taxesPaidToStateJurisdictions).c_str());
+  printf("Yearly income wages were: %s\n",
+         util->convertMoney(yearlyIncomeWages).c_str());
 
   // TODO(amcp) fix use of tax dictionary
   Worth::TaxDictionary* dict = NULL;  // Worth::TaxDictionary::getInstance();
@@ -138,38 +143,52 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
   QuantLib::Money federalTaxableIncome = yearlyIncomeWages
       - taxesPaidToStateJurisdictions - deductionsInAllJurisdictions
       - federalExemptions;
-  std::cout << "US Taxable Income for " << year << ": " << federalTaxableIncome
-            << " (AGI was " << yearlyIncomeWages << ", exemption "
-            << federalExemptions << ")" << std::endl;
+
+  printf("US Taxable Income for %u: %s (AGI was %s, exemption %s)\n",
+         year, util->convertMoney(federalTaxableIncome).c_str(),
+         util->convertMoney(yearlyIncomeWages).c_str(),
+         util->convertMoney(federalExemptions).c_str());
+
   taxesOwed["US"] = dict->getIncomeTaxer(year, "US")->computeTax(
       federalTaxableIncome);
   for (std::set<std::string>::iterator itin = stateJurisdictions.begin();
       itin != stateJurisdictions.end(); itin++) {
-    QuantLib::Money taxableIncome = yearlyIncomeWages
-        - deductionsInAllJurisdictions - dict->getExemptionAmount(year, *itin);
-    std::cout << *itin << " Taxable Income for " << year << ": "
-              << taxableIncome << " (AGI was " << yearlyIncomeWages
-              << ", exemption " << dict->getExemptionAmount(year, *itin) << ")"
-              << std::endl;
+
+    QuantLib::Money taxableIncome = yearlyIncomeWages;
+    taxableIncome -= deductionsInAllJurisdictions;
+    taxableIncome -= dict->getExemptionAmount(year, *itin);
+    QuantLib::Money exemptionAmount = dict->getExemptionAmount(year, (*itin));
+
+    printf("%s Taxable Income for %u: %s (AGI was %s, exemption %s)\n",
+           itin->c_str(),
+           year,
+           util->convertMoney(taxableIncome).c_str(),
+           util->convertMoney(yearlyIncomeWages).c_str(),
+           util->convertMoney(exemptionAmount).c_str());
+
     taxesOwed[*itin] = dict->getIncomeTaxer(year, *itin)->computeTax(
         taxableIncome);
   }
 
   // TODO(amcp) rehash with days-in-year ratios and jurisdiction source income
-  std::cout << "Federal Taxable Income for " << year << ": "
-            << yearlyIncomeWages << " (AGI was " << yearlyIncomeWages << ")"
-            << std::endl;
+  printf("Federal Taxable Income for %u: %s (AGI was %s)\n",
+         year, util->convertMoney(yearlyIncomeWages).c_str(),
+         util->convertMoney(yearlyIncomeWages).c_str());
   for (JobPayment::StringMoneyMap::iterator itin = taxesPaid.begin();
       itin != taxesPaid.end(); itin++) {
     result[(*itin).first] = (*itin).second - taxesOwed[(*itin).first];
-    std::cout << (*itin).first << " taxes withheld: " << (*itin).second << "; "
-              << (*itin).first << " taxes actually owed: "
-              << taxesOwed[(*itin).first] << std::endl;
+    printf("%s taxes withheld: %s; %s taxes actually owed: %s\n",
+           (*itin).first.c_str(),
+           util->convertMoney((*itin).second).c_str(),
+           (*itin).first.c_str(),
+           util->convertMoney(taxesOwed[(*itin).first]).c_str());
   }
 
-  std::cout << std::endl;
+  printf("\n");
 
   generateYearEndSummary(year);
 
   return result;
+}
+
 }

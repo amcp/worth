@@ -23,14 +23,13 @@
 #ifndef WORTH_UTILITY_H_
 #define WORTH_UTILITY_H_
 
+#include <ql/money.hpp>
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 
 #include <ext/hash_map>
 #include <vector>
 #include <string>
-
-
 
 namespace __gnu_cxx {
 template<> struct hash<std::string> {
@@ -41,6 +40,7 @@ template<> struct hash<std::string> {
 }
 
 namespace Worth {
+
 class Utility {
  private:
   static Utility* theInstance;
@@ -82,6 +82,8 @@ class Utility {
   }
 
   std::vector<std::string> readLines(const std::string& fname);
+  std::string convertMoney(const QuantLib::Money & money) const;
+  std::string convertDate(const QuantLib::Date & date) const;
 };
 }
 

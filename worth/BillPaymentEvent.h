@@ -29,6 +29,9 @@
 #include <algorithm>
 #include "worth/MyEvent.h"
 #include "worth/RecurringBill.h"
+#include "worth/DepositoryAccount.h"
+
+namespace Worth {
 
 class BillPaymentEvent : public MyEvent {
  private:
@@ -64,5 +67,7 @@ class BillPaymentEvent : public MyEvent {
     }
   }
 };
+
+}
 
 #endif  // WORTH_BILLPAYMENTEVENT_H_

@@ -22,6 +22,8 @@
 
 #include "worth/MyEvent.h"
 
+namespace Worth {
+
 MyEvent::MyEvent() {
   exec = QuantLib::Date::todaysDate();
 }
@@ -30,3 +32,4 @@ MyEvent::~MyEvent() {
   // TODO(amcp) Auto-generated destructor stub
 }
 
+}

@@ -26,6 +26,8 @@
 #include <ql/time/date.hpp>
 #include <ql/money.hpp>
 
+namespace Worth {
+
 class Payment {
  protected:
   QuantLib::Date exec;
@@ -66,5 +68,7 @@ class PartiallyDeductiblePayment : public Payment {
     return deductiblePortion;
   }
 };
+
+}
 
 #endif  // WORTH_PAYMENT_H_

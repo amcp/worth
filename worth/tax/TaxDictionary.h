@@ -24,12 +24,14 @@
 #define WORTH_TAX_TAXDICTIONARY_H_
 
 #include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 #include <ql/money.hpp>
 #include <ql/currencies/america.hpp>
 
 #include <ext/hash_map>
-#include <string>
+#include <algorithm>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "worth/tax/TieredTaxer.h"
@@ -47,9 +49,9 @@ class TaxDictionary {
  private:
   TaxDictionary() {
   }
-  __gnu_cxx ::hash_map<unsigned int, ExemptionMap> exemptionAmtPerJuris;
-  __gnu_cxx ::hash_map<unsigned int, IncomeTaxerMap> incomeTaxers;
-  __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap> socialTaxers;
+  __gnu_cxx ::hash_map<int, ExemptionMap> exemptionAmtPerJuris;
+  __gnu_cxx ::hash_map<int, IncomeTaxerMap> incomeTaxers;
+  __gnu_cxx ::hash_map<int, SocialTaxerMap> socialTaxers;
   QuantLib::Currency currency;
 
   TaxDictionary(std::string fname, QuantLib::Currency currencyIn)
@@ -59,23 +61,14 @@ class TaxDictionary {
     std::vector<std::string> lines = util->readLines(fname);
     for (std::vector<std::string>::iterator lineIt = lines.begin();
         lineIt != lines.end(); ++lineIt) {
-      // get tokens in line
-      std::stringstream strstr(*lineIt);
-      std::istream_iterator<std::string> it(strstr);
-      std::istream_iterator<std::string> end;
+      boost::char_separator<char> sep(", ");
+      boost::tokenizer<boost::char_separator<char> > tok(*lineIt, sep);
       std::vector<std::string> tokens;
-      tokens.insert(tokens.begin(), it, end);
+      std::copy(tok.begin(), tok.end(), tokens.begin());
 
       if (tokens.size() == 0) {
         continue;
       }
-      // else {
-      // std::vector<std::string>::iterator tokit
-      // for (tokit = tokens.begin(); tokit != tokens.end(); tokit++) {
-      // cout << *tokit << ", ";
-      // }
-      // cout << endl;
-      // }
 
       // process record
       unsigned int year = boost::lexical_cast<unsigned int>(tokens[0]);
@@ -101,7 +94,7 @@ class TaxDictionary {
         exemptionAmtPerJuris[year][jurisdiction] = boost::lexical_cast<double>(
             tokens[3]) * currency;
       } else {
-        std::cerr << "Unknown type " << type << std::endl;
+        fprintf(stderr, "Unknown type: %s\n", type.c_str());
       }
     }
   }
@@ -111,27 +104,27 @@ class TaxDictionary {
     // TODO(amcp) delete all the tax tier objects
   }
 
-  void addIncomeTaxer(unsigned int year, std::string jurisdiction,
+  void addIncomeTaxer(int year, std::string jurisdiction,
                       TieredTaxer* taxer) {
     incomeTaxers[year][jurisdiction] = taxer;
   }
 
-  void addSocialTaxer(unsigned int year, std::string jurisdiction,
+  void addSocialTaxer(int year, std::string jurisdiction,
                       std::string type, TieredTaxer* taxer) {
     socialTaxers[year][jurisdiction][type] = taxer;
   }
 
-  void setExemptionAmount(unsigned int year, std::string jurisdiction,
+  void setExemptionAmount(int year, std::string jurisdiction,
                           QuantLib::Money amt) {
     exemptionAmtPerJuris[year][jurisdiction] = amt;
   }
 
-  TieredTaxer* getIncomeTaxer(unsigned int year,
+  TieredTaxer* getIncomeTaxer(int year,
                               const std::string jurisdiction) {
     std::stringstream msg1;
     msg1 << "Income taxer data missing for year " << year << ".";
     QL_REQUIRE(incomeTaxers.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<unsigned int, IncomeTaxerMap>::const_iterator yearIt =
+    __gnu_cxx ::hash_map<int, IncomeTaxerMap>::const_iterator yearIt =
         incomeTaxers.find(year);
     IncomeTaxerMap map = (*yearIt).second;
 
@@ -143,12 +136,12 @@ class TaxDictionary {
     return (*it).second;
   }
 
-  QuantLib::Money getExemptionAmount(unsigned int year,
+  QuantLib::Money getExemptionAmount(int year,
                                      const std::string jurisdiction) {
     std::stringstream msg1;
     msg1 << "Exemption amount data missing for year " << year << ".";
     QL_REQUIRE(exemptionAmtPerJuris.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<unsigned int, ExemptionMap>::const_iterator yearIt =
+    __gnu_cxx ::hash_map<int, ExemptionMap>::const_iterator yearIt =
         exemptionAmtPerJuris.find(year);
     ExemptionMap map = (*yearIt).second;
 
@@ -161,11 +154,11 @@ class TaxDictionary {
   }
 
   __gnu_cxx::hash_map<std::string, TieredTaxer*, __gnu_cxx::hash<std::string> > getSocialTaxers(
-      unsigned int year, const std::string jurisdiction) {
+      int year, const std::string jurisdiction) {
     std::stringstream msg1;
     msg1 << "Social taxer data missing for year " << year << ".";
     QL_REQUIRE(socialTaxers.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt =
+    __gnu_cxx ::hash_map<int, SocialTaxerMap>::const_iterator yearIt =
         socialTaxers.find(year);
     SocialTaxerMap map = (*yearIt).second;
 
@@ -177,12 +170,12 @@ class TaxDictionary {
     return (*it).second;
   }
 
-  bool hasSocialTaxers(unsigned int year, const std::string jurisdiction) {
+  bool hasSocialTaxers(int year, const std::string jurisdiction) {
     if (socialTaxers.count(year) == 0) {
       return false;
     }
 
-    __gnu_cxx ::hash_map<unsigned int, SocialTaxerMap>::const_iterator yearIt =
+    __gnu_cxx ::hash_map<int, SocialTaxerMap>::const_iterator yearIt =
         socialTaxers.find(year);
     SocialTaxerMap map = (*yearIt).second;
     return map.count(jurisdiction) > 0;

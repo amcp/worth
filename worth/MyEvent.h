@@ -22,12 +22,13 @@
 #define WORTH_MYEVENT_H_
 
 #include <ql/time/date.hpp>
-
+#include <cstdio>
 #include <queue>
 #include <vector>
 #include <string>
-#include <iostream>
 #include "worth/Utility.h"
+
+namespace Worth {
 
 class Sequencer;
 
@@ -101,7 +102,7 @@ class Sequencer {
         first->apply(this);
         executedEvents.push_back(first);
       } else {
-        // cout << "Not executing event: " << first->toString() << endl;
+        printf("Not executing event: %s\n", first->toString().c_str());
         unexecutedEvents.push_back(first);
       }
     }
@@ -114,8 +115,10 @@ class Sequencer {
   }
 
   void dumpEvents() {
-    std::cout << "Dumping events in queue." << std::endl;
+    printf("Dumping events in queue.\n");
   }
 };
+
+}
 
 #endif  // WORTH_MYEVENT_H_

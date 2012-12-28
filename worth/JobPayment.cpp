@@ -23,21 +23,30 @@
 #include <string>
 #include <ext/hash_map>
 
+#include "worth/Utility.h"
+
+namespace Worth {
+
 std::string JobPayment::toString() const {
+  Utility* util = Utility::getInstance();
   std::stringstream os;
 
-  os << "Date: " << exec << "; Rate: " << hourly << "; Gross: " << grossEarnings
-     << "; Income Wages: " << incomeWages << "; SS Wages: " << socialWages
-     << "; Deposit: " << amount;
-  __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >::const_iterator it;
+  os << "Date: " << util->convertDate(exec)
+     << "; Rate: " << util->convertMoney(hourly)
+     << "; Gross: " << util->convertMoney(grossEarnings)
+     << "; Income Wages: " << util->convertMoney(incomeWages)
+     << "; SS Wages: " << util->convertMoney(socialWages)
+     << "; Deposit: " << util->convertMoney(amount);
+
+  JobPayment::StringMoneyMap::const_iterator it;
   for (it = incomeTaxes.begin(); it != incomeTaxes.end(); it++) {
     os << "; " << (*it).first << "-SIT: " << (*it).second;
   }
-  __gnu_cxx::hash_map<std::string, __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >, __gnu_cxx::hash<std::string> >::const_iterator jurisIt;
+  __gnu_cxx::hash_map<std::string, JobPayment::StringMoneyMap, __gnu_cxx::hash<std::string> >::const_iterator jurisIt;
 
   for (jurisIt = socialTaxes.begin(); jurisIt != socialTaxes.end(); jurisIt++) {
     std::string jurisdiction = (*jurisIt).first;
-    __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >::const_iterator taxTypeIt;
+    JobPayment::StringMoneyMap::const_iterator taxTypeIt;
     for (taxTypeIt = (*jurisIt).second.begin(); taxTypeIt != (*jurisIt).second.end();
         taxTypeIt++) {
       os << "; " << jurisdiction << "-" << (*taxTypeIt).first << ": "
@@ -50,7 +59,4 @@ std::string JobPayment::toString() const {
   return os.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const JobPayment& pmt) {
-  os << pmt.toString();
-  return os;
 }

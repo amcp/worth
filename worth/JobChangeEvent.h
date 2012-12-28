@@ -21,45 +21,44 @@
 #ifndef WORTH_JOBCHANGEEVENT_H_
 #define WORTH_JOBCHANGEEVENT_H_
 
-#include <iostream>
-#include <istream>
-#include <sstream>
+#include <boost/tokenizer.hpp>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include "worth/MyEvent.h"
 #include "worth/Job.h"
 #include "worth/JobPaymentEvent.h"
+#include "worth/Utility.h"
 
-using namespace std;
-using namespace QuantLib;
+namespace Worth {
 
 class JobChangeEvent : public MyEvent {
  private:
-  Job& job;
-  string command;
-  vector<string> tokens;
+  Job* job;
+  std::string command;
+  std::vector<std::string> tokens;
+
  public:
-  JobChangeEvent(Job& j, string str, Date exec)
+  JobChangeEvent(Job* j, std::string str, QuantLib::Date exec)
       : MyEvent(exec),
         job(j),
         command(str) {
-    std::stringstream strstr(str);
-    std::istream_iterator<std::string> it(strstr);
-    std::istream_iterator<std::string> end;
-    tokens.insert(tokens.begin(), it, end);
+    boost::char_separator<char> sep(", ");
+    boost::tokenizer<boost::char_separator<char> > tok(str, sep);
+    std::copy(tok.begin, tok.end, tokens.begin());
   }
 
   ~JobChangeEvent() {
     tokens.clear();
   }
 
-  void apply(Sequencer& sequencer) {
+  void apply(Sequencer* sequencer) {
+    Utility* util = Utility::getInstance();
     if (tokens.size() < 1) {
       return;
     }
-
-    cout << exec << ": " << command << endl;
+    printf("%s: %s\n", util->convertDate(exec).c_str(), command);
 
     double tempDouble = 0;
     unsigned int tempUint = 0;
@@ -68,83 +67,87 @@ class JobChangeEvent : public MyEvent {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
 
-      Money temp(tempDouble, job.getCurrency());
-      temp = temp + job.getHourlyRate();
-      job.setHourlyRate(temp);
+      QuantLib::Money temp(tempDouble, job->getCurrency());
+      temp = temp + job->getHourlyRate();
+      job->setHourlyRate(temp);
     } else if (tokens[0].compare("CHANGE_EMPLOYEE_403B_CONTRIBUTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setPreIncomeTaxDeductionsPerPeriod(tempDouble * job.getCurrency());
+      job->setPreIncomeTaxDeductionsPerPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_EXTRA_PAYMENT") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setExtraPayInPeriod(tempDouble * job.getCurrency());
+      job->setExtraPayInPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_EMPLOYER_RETIREMENT_GIFT") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setEmployerRetirementGiftRate(tempDouble);
+      job->setEmployerRetirementGiftRate(tempDouble);
     } else if (tokens[0].compare("CHANGE_PRESOCIAL_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setPreSocialTaxDeductionsPerPeriod(tempDouble * job.getCurrency());
+      job->setPreSocialTaxDeductionsPerPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_PREINCOME_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setPreIncomeTaxDeductionsPerPeriod(tempDouble * job.getCurrency());
+      job->setPreIncomeTaxDeductionsPerPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_POSTTAX_DEDUCTIONS") == 0) {
       try {
         tempDouble = boost::lexical_cast<double>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[1].c_str());
         tempDouble = 0;
       }
-      job.setTaxableDeductionsPerPeriod(tempDouble * job.getCurrency());
+      job->setTaxableDeductionsPerPeriod(tempDouble * job->getCurrency());
     } else if (tokens[0].compare("CHANGE_EXEMPTION") == 0) {
-      __gnu_cxx::hash_map<string, int, __gnu_cxx::hash<string> > exemptions = job.getExemptions();
+      __gnu_cxx::hash_map<std::string, int, __gnu_cxx::hash<std::string> > exemptions = job->getExemptions();
       try {
         tempUint = boost::lexical_cast<int>(tokens[2]);
       } catch (const boost::bad_lexical_cast&) {
-        cerr << "Unable to parse" << endl;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[2].c_str());
         tempUint = 0;
       }
       exemptions[tokens[1]] = tempUint;
-      job.setExemptions(exemptions);
+      job->setExemptions(exemptions);
     } else if (tokens[0].compare("START_JOB") == 0) {
-      if (job.hasMorePayments())
-        sequencer.addEvent(
-            new JobPaymentEvent(job.getCurrentPaymentDate(), job));
+      if (job->hasMorePayments())
+        MyEvent* ev = NULL;
+        QuantLib::Date pmtDate = job->getCurrentPaymentDate();
+        ev = JobPaymentEvent::createJobPaymentEvent(pmtDate, job);
+        sequencer->addEvent(ev);
     } else {
-      cerr << "Unknown job event: " << tokens[0] << endl;
+      fprintf(stderr, "Unknown job event: %s\n", command.c_str());
     }
   }
 
-  string toString() const {
+  std::string toString() const {
     return command;
   }
 };
+
+}
 
 #endif /* WORTH_JOBCHANGEEVENT_H_ */

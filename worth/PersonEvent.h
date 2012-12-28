@@ -23,14 +23,17 @@
 #ifndef WORTH_PERSONEVENT_H_
 #define WORTH_PERSONEVENT_H_
 
-#include <iostream>
-#include <istream>
-#include <sstream>
+#include <boost/tokenizer.hpp>
+#include <cstdio>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <boost/lexical_cast.hpp>
+#include "worth/DepositoryAccount.h"
 #include "worth/MyEvent.h"
 #include "worth/Job.h"
+
+namespace Worth {
 
 class PersonEvent : public MyEvent {
  private:
@@ -42,10 +45,9 @@ class PersonEvent : public MyEvent {
       : MyEvent(exec),
         person(j),
         command(str) {
-    std::stringstream strstr(str);
-    std::istream_iterator<std::string> it(strstr);
-    std::istream_iterator<std::string> end;
-    tokens.insert(tokens.begin(), it, end);
+    boost::char_separator<char> sep(", ");
+    boost::tokenizer<boost::char_separator<char> > tok(str, sep);
+    std::copy(tok.begin, tok.end, tokens.begin());
   }
 
   ~PersonEvent() {
@@ -56,19 +58,19 @@ class PersonEvent : public MyEvent {
     return command;
   }
 
-  void apply(Sequencer& sequencer) {
+  void apply(Sequencer* sequencer) {
     if (tokens.size() < 1) {
       return;
     }
 
-    std::cout << exec << ": " << command << std::endl;
+    printf("%s: %s\n", exec, command.c_str());
 
     if (tokens[0].compare("FILE_TAX_RETURN") == 0 && tokens.size() == 3) {
       int year = 0;
       try {
         year = boost::lexical_cast<int>(tokens[1]);
       } catch (const boost::bad_lexical_cast&) {
-        std::cerr << "Unable to parse" << std::endl;
+        fprintf(stderr, "Unable to parse %s as an int.\n", tokens[1].c_str());
         year = 0;
       }
 
@@ -76,24 +78,26 @@ class PersonEvent : public MyEvent {
       try {
         uniformDeduction = boost::lexical_cast<double>(tokens[2]);
       } catch (const boost::bad_lexical_cast&) {
-        std::cerr << "Unable to parse" << std::endl;
-        uniformDeduction = 0;
+        fprintf(stderr, "Unable to parse %s as a double.\n", tokens[2].c_str());
+        uniformDeduction = 0.0;
       }
 
-      __gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> > returnsByJuris = person
+      JobPayment::StringMoneyMap returnsByJuris = person
           .generateTaxReturn(year, uniformDeduction * person.getCurrency());
 
-      for (__gnu_cxx::hash_map<std::string, QuantLib::Money, __gnu_cxx::hash<std::string> >::iterator it = returnsByJuris
-          .begin(); it != returnsByJuris.end(); it++) {
-        std::cout << "Date: " << exec << "; Depositing " << (*it).first
-             << " return of " << (*it).second << std::endl;
-        person.getMainDepository()->creditAccount((*it).second);
-        std::cout << person.getMainDepository()->toString() << std::endl;
+      JobPayment::StringMoneyMap::iterator it;
+      for (it = returnsByJuris.begin(); it != returnsByJuris.end(); it++) {
+        printf("Date: %s; Depositing %s return of %s\n", exec, it->first.c_str(), it->second);
+        QuantLib::Money returnMoney = (*it).second;
+        person.getMainDepository()->creditAccount(returnMoney);
+        printf("%s\n", person.getMainDepository()->toString().c_str());
       }
     } else {
-      std::cerr << "Unknown job event: " << command << std::endl;
+      fprintf(stderr, "Unknown job event: %s\n", command.c_str());
     }
   }
 };
+
+}
 
 #endif /* WORTH_PERSONEVENT_H_ */

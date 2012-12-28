@@ -33,6 +33,8 @@
 #include "worth/Payment.h"
 #include "worth/Job.h"
 
+namespace Worth {
+
 class RecurringBill {
  protected:
   std::string name;
@@ -100,5 +102,7 @@ class RecurringBill {
     return user;
   }
 };
+
+}
 
 #endif  // WORTH_RECURRINGBILL_H_

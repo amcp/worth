@@ -27,9 +27,9 @@
 #include <ql/money.hpp>
 #include <ql/currencies/america.hpp>
 
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <ext/hash_map>
 
 #include "worth/DepositoryAccount.h"
@@ -37,6 +37,8 @@
 #include "worth/tax/TieredTaxer.h"
 #include "worth/MyEvent.h"
 #include "worth/Payment.h"
+
+namespace Worth {
 
 class Job;
 
@@ -85,7 +87,6 @@ class JobPayment : public Payment {
   }
 
   std::string toString() const;
-  friend std::ostream& operator<<(std::ostream& os, const JobPayment& pmt);
 
   inline QuantLib::Money getGrossEarnings() const {
     return grossEarnings;
@@ -122,7 +123,7 @@ class Person {
   // year->month->billName->vector
   __gnu_cxx ::hash_map<int,
       __gnu_cxx ::hash_map<int,
-          __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
+          __gnu_cxx ::hash_map<const std::string, std::vector<Payment*>,
               __gnu_cxx ::hash<std::string> > > > billPayments;
 
  public:
@@ -145,7 +146,7 @@ class Person {
     paymentsPerCalendarYearAndMonth[payment->getDate().year()][payment->getDate()
         .month()].push_back(payment);
   }
-  inline void addBillPayment(std::string name, Payment* payment) {
+  inline void addBillPayment(const std::string name, Payment* payment) {
     billPayments[payment->getDate().year()][payment->getDate().month()][name]
         .push_back(payment);
   }
@@ -159,14 +160,15 @@ class Person {
   QuantLib::Money getNetWorth();
 
   void generateYearEndSummary(int year) {
+    Utility* util = Utility::getInstance();
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
+        __gnu_cxx ::hash_map<const std::string, std::vector<Payment*>,
             __gnu_cxx ::hash<std::string> > > billPaymentsInYear =
         billPayments[year];
     __gnu_cxx ::hash_map<int, std::vector<JobPayment*> > jobPaymentsInYear =
         paymentsPerCalendarYearAndMonth[year];
     __gnu_cxx ::hash_map<int,
-        __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
+        __gnu_cxx ::hash_map<const std::string, std::vector<Payment*>,
             __gnu_cxx ::hash<std::string> > >::iterator monthIt;
     QuantLib::Money yearTotal = 0 * currency;
 
@@ -175,9 +177,8 @@ class Person {
         monthIt != billPaymentsInYear.end(); monthIt++) {
       QuantLib::Money monthCashFlow = 0 * currency;
       QuantLib::Money monthTotalExpense = 0 * currency;
-      std::cout << "Year: " << year << "; Month: " << (*monthIt).first
-                << std::endl;
-      __gnu_cxx ::hash_map<std::string, std::vector<Payment*>,
+      printf("Year: %u; Month: %u\n", year, monthIt->first);
+      __gnu_cxx ::hash_map<const std::string, std::vector<Payment*>,
           __gnu_cxx ::hash<std::string> >::iterator catIt;
       for (catIt = (*monthIt).second.begin(); catIt != (*monthIt).second.end();
           catIt++) {
@@ -187,10 +188,10 @@ class Person {
             pmtIt++) {
           categoryTotal += (*pmtIt)->getAmount();
         }
-        std::cout << (*catIt).first << ": " << categoryTotal << "; ";
+        printf("%s: %s\n", (*catIt).first.c_str(), util->convertMoney(categoryTotal).c_str());
         monthTotalExpense += categoryTotal;
       }
-      std::cout << std::endl;
+      printf("\n");
 
       QuantLib::Money monthTotalIncome = 0 * currency;
       for (std::vector<JobPayment*>::iterator jobIt = jobPaymentsInYear[(*monthIt)
@@ -201,11 +202,12 @@ class Person {
 
       monthCashFlow = monthTotalIncome - monthTotalExpense;
       cumulativeCashFlow += monthCashFlow;
-      std::cout << "Year: " << year << "; Month: " << (*monthIt).first
-                << "; Total expenses: " << monthTotalExpense
-                << "; Total income: " << monthTotalIncome << "; Net cash flow: "
-                << monthCashFlow << "; YTD cash flow: " << cumulativeCashFlow
-                << std::endl;
+      printf("Year: %u; Month: %u; Total expenses: %s; Total income: %s; ",
+             year, monthIt->first, util->convertMoney(monthTotalExpense).c_str(),
+             util->convertMoney(monthTotalIncome).c_str());
+      printf("; Net cash flow: %s; YTD cash flow: %s\n",
+             util->convertMoney(monthCashFlow).c_str(),
+             util->convertMoney(cumulativeCashFlow).c_str());
       yearTotal += monthTotalExpense;
     }
   }
@@ -465,5 +467,7 @@ class Job {
     return paymentIterator != paySchedule.end();
   }
 };
+
+}
 
 #endif  // WORTH_JOB_H_

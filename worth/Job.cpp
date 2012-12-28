@@ -23,9 +23,11 @@
 #include <cmath>
 #include <ql/money.hpp>
 #include <ql/cashflows/simplecashflow.hpp>
-#include "Account.h"
+#include "worth/DepositoryAccount.h"
 #include "tax/TieredTaxer.h"
 #include "tax/TaxDictionary.h"
+
+namespace Worth {
 
 Job::~Job() {
 }
@@ -198,4 +200,6 @@ JobPayment* Job::getNextPayment() {
 
   paymentIterator++;
   return result;
+}
+
 }
