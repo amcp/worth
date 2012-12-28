@@ -45,6 +45,11 @@ typedef unsigned int Year;
 
 class State {
  public:
+  enum WagesAnnualizableType {
+    MAY_ANNUALIZE,
+    MUST_ANNUALIZE,
+    CANNOT_ANNUALIZE_NON_ANNUAL_PAY_FREQUENCIES
+  };
   typedef std::map<PayrollFrequency, QuantLib::Money> FrequencyTable;
   typedef std::map<unsigned int, FrequencyTable> AllowanceFrequencyTable;
   typedef std::map<FilingStatus, FrequencyTable> StatusFrequencyTable;
@@ -59,12 +64,14 @@ class State {
   AllowanceFrequencyTable withholdingAllowanceTable;
   StatusFrequencyTable lowIncomeExemptionTable;
   StatusFrequencyTable standardDeductionTable;
+  WagesAnnualizableType wagesAnnualizable;
 
  public:
-  State(std::string name, Year yearIn, QuantLib::Currency cur)
+  State(std::string name, Year yearIn, QuantLib::Currency cur, WagesAnnualizableType wagesAnnualizableIn)
       : jurisdictionName(name),
         year(yearIn),
-        currency(cur) {
+        currency(cur),
+        wagesAnnualizable(wagesAnnualizableIn) {
   }
   ~State() {
     for (std::map<FilingStatus, WithholdingTable*>::iterator it =
@@ -289,6 +296,10 @@ class State {
     }
 
     return result;
+  }
+
+  WagesAnnualizableType getWagesAnnualizationType() const {
+    return this->wagesAnnualizable;
   }
 };
 
