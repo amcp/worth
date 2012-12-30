@@ -27,17 +27,8 @@
 #include <ql/time/date.hpp>
 #include <ql/time/schedule.hpp>
 
-#include <ext/hash_map>
 #include <vector>
 #include <string>
-
-namespace __gnu_cxx {
-template<> struct hash<std::string> {
-  size_t operator()(const std::string& x) const {
-    return hash<const char*>()(x.c_str());
-  }
-};
-}
 
 namespace Worth {
 

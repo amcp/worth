@@ -20,7 +20,7 @@
  * along with Worth. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <ext/hash_map>
+#include <map>
 #include <cstdio>
 #include <vector>
 #include <set>
@@ -33,8 +33,7 @@
 
 namespace Worth {
 
-Person::Person(QuantLib::Currency cur,
-               __gnu_cxx ::hash_map<std::string, int> ex)
+Person::Person(QuantLib::Currency cur, std::map<std::string, int> ex)
     : currency(cur),
       nominalExemptions(ex),
       mainDepository(NULL) {
@@ -84,7 +83,7 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
   }
 
   QuantLib::Money taxesPaidToStateJurisdictions = 0 * currency;
-  for (__gnu_cxx ::hash_map<int, std::vector<JobPayment*> >::iterator monthIt =
+  for (std::map<int, std::vector<JobPayment*> >::iterator monthIt =
       paymentsPerCalendarYearAndMonth[year].begin();
       monthIt != paymentsPerCalendarYearAndMonth[year].end(); monthIt++) {
     for (std::vector<JobPayment*>::iterator it = (*monthIt).second.begin();
@@ -109,11 +108,10 @@ JobPayment::StringMoneyMap Person::generateTaxReturn(
         }
       }
 
-      __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
-          __gnu_cxx ::hash<std::string> > paymentSocialTaxesPaid = pmt
+      std::map<std::string,
+        JobPayment::StringMoneyMap> paymentSocialTaxesPaid = pmt
           ->getSocialTaxesPaid();
-      __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
-          __gnu_cxx ::hash<std::string> >::iterator socialIt;
+      std::map<std::string, JobPayment::StringMoneyMap>::iterator socialIt;
       for (socialIt = paymentSocialTaxesPaid.begin();
           socialIt != paymentSocialTaxesPaid.end(); socialIt++) {
         if ((*socialIt).first.compare("US") != 0) {

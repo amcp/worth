@@ -28,7 +28,7 @@
 #include <ql/money.hpp>
 #include <ql/currencies/america.hpp>
 
-#include <ext/hash_map>
+#include <map>
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -38,20 +38,17 @@
 #include "worth/Utility.h"
 
 namespace Worth {
-typedef __gnu_cxx ::hash_map<std::string, QuantLib::Money,
-    __gnu_cxx ::hash<std::string> > ExemptionMap;
-typedef __gnu_cxx ::hash_map<std::string, TieredTaxer*,
-    __gnu_cxx ::hash<std::string> > IncomeTaxerMap;
-typedef __gnu_cxx ::hash_map<std::string, IncomeTaxerMap,
-    __gnu_cxx ::hash<std::string> > SocialTaxerMap;
+typedef std::map<std::string, QuantLib::Money> ExemptionMap;
+typedef std::map<std::string, TieredTaxer*> IncomeTaxerMap;
+typedef std::map<std::string, IncomeTaxerMap> SocialTaxerMap;
 
 class TaxDictionary {
  private:
   TaxDictionary() {
   }
-  __gnu_cxx ::hash_map<int, ExemptionMap> exemptionAmtPerJuris;
-  __gnu_cxx ::hash_map<int, IncomeTaxerMap> incomeTaxers;
-  __gnu_cxx ::hash_map<int, SocialTaxerMap> socialTaxers;
+  std::map<int, ExemptionMap> exemptionAmtPerJuris;
+  std::map<int, IncomeTaxerMap> incomeTaxers;
+  std::map<int, SocialTaxerMap> socialTaxers;
   QuantLib::Currency currency;
 
   TaxDictionary(std::string fname, QuantLib::Currency currencyIn)
@@ -124,7 +121,7 @@ class TaxDictionary {
     std::stringstream msg1;
     msg1 << "Income taxer data missing for year " << year << ".";
     QL_REQUIRE(incomeTaxers.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<int, IncomeTaxerMap>::const_iterator yearIt =
+    std::map<int, IncomeTaxerMap>::const_iterator yearIt =
         incomeTaxers.find(year);
     IncomeTaxerMap map = (*yearIt).second;
 
@@ -141,7 +138,7 @@ class TaxDictionary {
     std::stringstream msg1;
     msg1 << "Exemption amount data missing for year " << year << ".";
     QL_REQUIRE(exemptionAmtPerJuris.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<int, ExemptionMap>::const_iterator yearIt =
+    std::map<int, ExemptionMap>::const_iterator yearIt =
         exemptionAmtPerJuris.find(year);
     ExemptionMap map = (*yearIt).second;
 
@@ -158,7 +155,7 @@ class TaxDictionary {
     std::stringstream msg1;
     msg1 << "Social taxer data missing for year " << year << ".";
     QL_REQUIRE(socialTaxers.count(year) > 0, msg1.str());
-    __gnu_cxx ::hash_map<int, SocialTaxerMap>::const_iterator yearIt =
+    std::map<int, SocialTaxerMap>::const_iterator yearIt =
         socialTaxers.find(year);
     SocialTaxerMap map = (*yearIt).second;
 
@@ -175,7 +172,7 @@ class TaxDictionary {
       return false;
     }
 
-    __gnu_cxx ::hash_map<int, SocialTaxerMap>::const_iterator yearIt =
+    std::map<int, SocialTaxerMap>::const_iterator yearIt =
         socialTaxers.find(year);
     SocialTaxerMap map = (*yearIt).second;
     return map.count(jurisdiction) > 0;

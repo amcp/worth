@@ -24,9 +24,11 @@
 #define WORTH_PAYROLL_WITHHOLDER_H_
 
 #include <ql/money.hpp>
+#include <cstdio>
 #include <string>
 #include "worth/payroll/PayrollPeriods.h"
 #include "worth/jurisdiction/State.h"
+#include "worth/Utility.h"
 
 namespace Worth {
 
@@ -68,13 +70,14 @@ class Withholder {
       }
     }
 
-    std::cerr << "State: " << state->getName() << "; Filing Status: " << status
-              << ";" << std::endl;
-    std::cerr << "Payroll Frequency: " << freq << "; Period wages: " << income
-              << ";" << std::endl;
-    std::cerr << "Exemptions: " << exemptionAllowances
-              << "; Additional withholding allowances: "
-              << additionalWithholdingAllowances << std::endl;
+    Utility* util = Utility::getInstance();
+
+    printf("State: %s; Filing Status: %s;\n", state->getName().c_str(),
+           status.c_str());
+    printf("Payroll Frequency: %d; Period wages: %s;\n", freq,
+           util->convertMoney(income).c_str());
+    printf("Exemptions: %u; Additional withholding allowances: %u;\n",
+           exemptionAllowances, additionalWithholdingAllowances);
 
     std::string statusToCheck = status;
     if (state->getName() == "CA") {
@@ -99,7 +102,8 @@ class Withholder {
       estimatedDeduction = state->getEstimatedDeduction(1, freq)
           * additionalWithholdingAllowances;
     }
-    std::cerr << "Estimated Deduction: " << estimatedDeduction << std::endl;
+    printf("Estimated Deduction: %s\n",
+           util->convertMoney(estimatedDeduction).c_str());
 
     QuantLib::Money withholdingAllowance(0, income.currency());
     if (state->hasAllowancesInWithholdingAllowanceTable(
@@ -110,7 +114,8 @@ class Withholder {
       withholdingAllowance = state->getWithholdingAllowance(1, freq)
           * withholdingAllowances;
     }
-    std::cerr << "Withholding allowance: " << withholdingAllowance << std::endl;
+    printf("Withholding allowance: %s\n",
+           util->convertMoney(withholdingAllowance).c_str());
 
     QuantLib::Money standardDeduction(0, income.currency());
     if (state->getName() == "CA") {
@@ -126,15 +131,15 @@ class Withholder {
     } else if (state->hasStandardDeductionForStatus(status)) {
       standardDeduction = state->getStandardDeduction(status, freq);
     }
-    std::cerr << "Standard Deduction: " << standardDeduction << std::endl;
+    printf("Standard Deduction: %s\n", util->convertMoney(standardDeduction).c_str());
 
     QuantLib::Money taxableIncome = income - standardDeduction
         - estimatedDeduction - withholdingAllowance;
-    std::cerr << "Taxable Income: " << taxableIncome << std::endl;
+    printf("Taxable Income: %s\n", util->convertMoney(taxableIncome).c_str());
 
     QuantLib::Money computedTax = state->getWithholder(status)->getTax(
         freq, taxableIncome);
-    std::cerr << "Computed Tax: " << computedTax << std::endl;
+    printf("Computed Tax: %s\n", util->convertMoney(computedTax).c_str());
 
     QuantLib::Money exemptionAmount(0, income.currency());
     if (state->hasAllowancesInExemptionAllowanceTable(
@@ -148,7 +153,8 @@ class Withholder {
     QuantLib::Money taxWithheld = computedTax - exemptionAmount;
 
     if (annualWithholding) {
-      std::cerr << "Tax Withheld (annualized): " << taxWithheld << std::endl;
+      printf("Tax Withheld (annualized): %s\n",
+             util->convertMoney(taxWithheld).c_str());
       freq = Worth::Annual;
       if (freqIn == Worth::Semiannual) {
         taxWithheld /= 2;
@@ -166,8 +172,8 @@ class Withholder {
         taxWithheld /= 259;
       }
     }
-    std::cerr << "Tax Withheld per period: " << taxWithheld << std::endl
-              << std::endl;
+    printf("Tax Withheld per period: %s\n\n",
+           util->convertMoney(taxWithheld).c_str());
 
     return taxWithheld;
   }

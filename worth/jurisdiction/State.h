@@ -33,7 +33,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <iostream>
 
 #include "worth/payroll/Withholder.h"
 #include "worth/payroll/PayrollPeriods.h"
@@ -67,7 +66,8 @@ class State {
   WagesAnnualizableType wagesAnnualizable;
 
  public:
-  State(std::string name, Year yearIn, QuantLib::Currency cur, WagesAnnualizableType wagesAnnualizableIn)
+  State(std::string name, Year yearIn, QuantLib::Currency cur,
+        WagesAnnualizableType wagesAnnualizableIn)
       : jurisdictionName(name),
         year(yearIn),
         currency(cur),

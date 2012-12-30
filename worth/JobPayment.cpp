@@ -19,7 +19,7 @@
  * along with Worth. If not, see http://www.gnu.org/licenses/.
  */
 
-#include <ext/hash_map>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -43,8 +43,7 @@ std::string JobPayment::toString() const {
   for (it = incomeTaxes.begin(); it != incomeTaxes.end(); it++) {
     os << "; " << (*it).first << "-SIT: " << (*it).second;
   }
-  __gnu_cxx ::hash_map<std::string, JobPayment::StringMoneyMap,
-      __gnu_cxx ::hash<std::string> >::const_iterator jurisIt;
+  std::map<std::string, JobPayment::StringMoneyMap>::const_iterator jurisIt;
 
   for (jurisIt = socialTaxes.begin(); jurisIt != socialTaxes.end(); jurisIt++) {
     std::string jurisdiction = (*jurisIt).first;
