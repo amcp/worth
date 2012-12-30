@@ -131,7 +131,8 @@ class Withholder {
     } else if (state->hasStandardDeductionForStatus(status)) {
       standardDeduction = state->getStandardDeduction(status, freq);
     }
-    printf("Standard Deduction: %s\n", util->convertMoney(standardDeduction).c_str());
+    printf("Standard Deduction: %s\n",
+           util->convertMoney(standardDeduction).c_str());
 
     QuantLib::Money taxableIncome = income - standardDeduction
         - estimatedDeduction - withholdingAllowance;
