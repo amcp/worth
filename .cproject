@@ -8,8 +8,8 @@
 				<externalSettings>
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/worth"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/worth/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="worth" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include"/>
+						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="/Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
